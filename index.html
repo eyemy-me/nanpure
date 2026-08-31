@@ -1,0 +1,905 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ナンプレ 観測版 v5.8</title>
+<style>
+
+:root{
+  color-scheme: light;
+  --viz-text:#1f2937;
+  --viz-muted:#6b7280;
+  --viz-border:#cbd5e1;
+  --viz-panel:#ffffff;
+  --viz-card:#f8fafc;
+  --viz-accent:#2563eb;
+  --viz-accent-bg:#dbeafe;
+  --viz-series-2:#dc2626;
+  --viz-series-3:#7c3aed;
+  --viz-peer-bg:#eef2f7;
+  --viz-same-bg:#cfe8ff;
+  --viz-selected-bg:#bcdcff;
+}
+
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --viz-text:#e5e7eb;
+  --viz-muted:#9ca3af;
+  --viz-border:#475569;
+  --viz-panel:#111827;
+  --viz-card:#1f2937;
+  --viz-accent:#60a5fa;
+  --viz-accent-bg:#1e3a5f;
+  --viz-series-2:#f87171;
+  --viz-series-3:#c084fc;
+  --viz-peer-bg:#182335;
+  --viz-same-bg:#234a67;
+  --viz-selected-bg:#1d4f7a;
+}
+html[data-theme="dark"] body{background:#080f1c}
+html[data-theme="dark"] #np-observer-game{box-shadow:0 8px 28px rgba(0,0,0,.34)}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#eef2f7;color:var(--viz-text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif}
+body{min-height:100vh;padding:16px;transition:background .18s ease,color .18s ease}
+button,select{font:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{cursor:default}
+.hidden{display:none!important}
+
+#np-observer-game{
+  width:100%;
+  max-width:900px;
+  min-width:0;
+  margin:0 auto;
+  padding:16px;
+  border:1px solid var(--viz-border);
+  border-radius:16px;
+  background:var(--viz-panel);
+  box-shadow:0 8px 28px rgba(15,23,42,.08);
+}
+#np-observer-game > section:first-child{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-end;
+  gap:8px;
+  margin-bottom:12px;
+}
+#np-observer-game > section:first-child label{
+  min-width:116px;
+  font-size:14px;
+  font-weight:600;
+}
+#np-observer-game select{
+  display:block;
+  width:100%;
+  margin-top:4px;
+  padding:7px 10px;
+  border:1px solid var(--viz-border);
+  border-radius:9px;
+  background:var(--viz-panel);
+  font-size:16px;
+}
+#np-observer-game > section:first-child button,
+#no-check,#no-hint,#no-reset,#no-save,#no-load,#no-copy-one,#no-copy-all,#no-volume,
+#no-note,#no-undo{
+  min-height:36px;
+  border:1px solid var(--viz-border);
+  border-radius:9px;
+  background:var(--viz-panel);
+  padding:7px 11px;
+}
+#no-new,#no-guard{background:var(--viz-accent-bg)!important}
+#np-observer-game > section:first-child > div:last-child{
+  margin-left:auto;
+  font-size:14px;
+  color:var(--viz-muted);
+}
+
+#no-status{
+  margin-bottom:12px;
+  padding:9px 12px;
+  border:1px solid var(--viz-border);
+  border-radius:9px;
+  background:var(--viz-card);
+  font-size:14px;
+  line-height:1.45;
+}
+
+#no-result{
+  margin-bottom:16px;
+  padding:16px;
+  border:1px solid var(--viz-border);
+  border-radius:13px;
+  background:var(--viz-card);
+}
+#no-result > div:first-child{text-align:center}
+#no-result > div:first-child > div:first-child{
+  font-size:12px;font-weight:700;letter-spacing:.16em;color:var(--viz-muted)
+}
+#no-result-time{margin-top:4px;font-size:24px;font-weight:800}
+#no-result-kicker{margin-top:14px;font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--viz-muted)}
+#no-title{margin-top:3px;font-size:clamp(27px,7vw,38px);font-weight:950;line-height:1.08;letter-spacing:.01em}
+#no-title-desc{max-width:610px;margin:7px auto 0;font-size:13px;line-height:1.65;color:var(--viz-muted)}
+#no-secondary-wrap{max-width:610px;margin:14px auto 0;padding:10px 12px;border-top:3px double var(--viz-text);border-bottom:1px solid var(--viz-border)}
+#no-secondary-label{font-size:10px;font-weight:800;letter-spacing:.16em;color:var(--viz-muted)}
+#no-secondary-title{margin-top:3px;font-size:18px;font-weight:850;line-height:1.3}
+#no-secondary-desc{margin-top:3px;font-size:12px;line-height:1.55;color:var(--viz-muted)}
+#no-news-fact{max-width:610px;margin:12px auto 0;padding:11px 0 2px;border-top:1px solid var(--viz-text);font-size:15px;font-weight:800;line-height:1.7;text-align:left}
+#no-reporter-eye{max-width:610px;margin:10px auto 0;padding:10px 12px;border-left:3px solid var(--viz-border);text-align:left;background:var(--viz-panel)}
+#no-reporter-eye-label{font-size:10px;font-weight:900;letter-spacing:.18em;color:var(--viz-muted)}
+#no-editor-comment{margin-top:4px;font-family:ui-serif,"Yu Mincho","Hiragino Mincho ProN",serif;font-size:12.5px;line-height:1.8;color:var(--viz-text)}
+#no-reporter-byline{margin-top:5px;font-size:10px;font-weight:700;color:var(--viz-muted);text-align:right}
+#no-stats{
+  max-width:680px;
+  margin:16px auto 0;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  column-gap:16px;
+  row-gap:8px;
+  padding:12px;
+  border:1px solid var(--viz-border);
+  border-radius:9px;
+  background:var(--viz-panel);
+}
+#no-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:12px}
+#no-result > div:last-child{
+  max-width:680px;
+  margin:16px auto 0;
+  padding-top:12px;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:8px;
+  border-top:1px solid var(--viz-border);
+}
+#no-log-count{align-self:center;font-size:12px;color:var(--viz-muted)}
+
+#no-game{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 220px;
+  gap:16px;
+  align-items:start;
+}
+#no-game[hidden]{display:none!important}
+#no-game > div:first-child{min-width:0}
+#no-board{
+  display:grid;
+  grid-template-columns:repeat(9,minmax(0,1fr));
+  aspect-ratio:1/1;
+  width:100%;
+  max-width:560px;
+  margin:0 auto;
+  overflow:hidden;
+  border:2px solid var(--viz-text);
+  border-radius:9px;
+  background:var(--viz-panel);
+}
+#no-board + p{
+  max-width:560px;
+  margin:8px auto 0;
+  font-size:12px;
+  line-height:1.55;
+  color:var(--viz-muted);
+}
+#no-game aside{
+  width:100%;
+  max-width:290px;
+  min-width:0;
+  margin:0 auto;
+}
+#no-note,#no-undo{width:100%}
+#no-note{margin-bottom:10px;min-height:40px;font-weight:700}
+#no-undo{margin-top:10px}
+#no-game aside > div[aria-label="数字入力"]{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+#no-game aside > div:nth-of-type(2){
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+  margin-top:12px;
+}
+#no-game aside > div:nth-of-type(3){
+  margin-top:20px;
+  padding-top:12px;
+  border-top:1px solid var(--viz-border);
+}
+#no-game aside > div:nth-of-type(3) > div{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+#no-check,#no-hint{font-size:14px;font-weight:600}
+#no-reset,#no-save,#no-load,#no-copy-one,#no-copy-all{font-size:12px;font-weight:600}
+
+@media (max-width:720px){
+  body{padding:8px}
+  #np-observer-game{padding:10px;border-radius:12px}
+  #no-game{grid-template-columns:1fr}
+  #no-game aside{max-width:360px}
+  #no-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #np-observer-game > section:first-child > div:last-child{width:100%;margin-left:0}
+}
+
+</style>
+</head>
+<body>
+<div id="np-observer-game" class="w-full min-w-0 text-[var(--viz-text)]">
+  <section class="mb-3 flex flex-wrap items-end gap-2">
+    <label class="min-w-[116px] text-sm font-medium">難易度
+      <select id="no-level" class="mt-1 block w-full rounded-lg border border-[var(--viz-border)] bg-[var(--viz-panel)] px-2.5 py-1.5 text-base">
+        <option value="easy">かんたん</option>
+        <option value="normal" selected>ふつう</option>
+        <option value="hard">むずかしい</option>
+      </select>
+    </label>
+    <button id="no-guard" type="button" aria-pressed="true" class="min-h-9 rounded-lg border border-[var(--viz-border)] bg-[var(--viz-accent-bg)] px-3 py-1.5 text-sm font-medium">連鎖ガード：ON</button>
+    <button id="no-candidates-toggle" type="button" aria-pressed="false" class="min-h-9 rounded-lg border border-[var(--viz-border)] bg-[var(--viz-panel)] px-3 py-1.5 text-sm font-medium">候補表示：OFF</button>
+    <button id="no-volume" type="button" class="min-h-9 rounded-lg border border-[var(--viz-border)] bg-[var(--viz-panel)] px-3 py-1.5 text-sm font-medium" aria-label="効果音の音量">効果音：中</button>
+    <button id="no-dark" type="button" aria-pressed="false" class="min-h-9 rounded-lg border border-[var(--viz-border)] bg-[var(--viz-panel)] px-3 py-1.5 text-sm font-medium">ダークモード：OFF</button>
+    <button id="no-new" type="button" class="min-h-9 rounded-lg bg-[var(--viz-accent-bg)] px-3 py-1.5 text-sm font-medium">新しい問題</button>
+    <div class="ml-auto text-sm text-[var(--viz-muted)]"><span id="no-timer">00:00</span> ・ <span id="no-clues">準備中</span></div>
+  </section>
+
+  <div id="no-status" class="mb-3 rounded-lg border border-[var(--viz-border)] bg-[var(--viz-card)] px-3 py-2 text-sm" aria-live="polite">問題を作成しています…</div>
+
+  <section id="no-result" class="mb-4 hidden rounded-xl border border-[var(--viz-border)] bg-[var(--viz-card)] p-4" aria-live="polite">
+    <div class="text-center">
+      <div class="text-xs font-semibold tracking-widest text-[var(--viz-muted)]">CLEAR!</div>
+      <div id="no-result-time" class="mt-1 text-2xl font-bold">00:00</div>
+      <div id="no-result-kicker">盤面スポーツ・号外</div>
+      <div id="no-title">盤面解放者</div>
+      <p id="no-title-desc"></p>
+      <div id="no-secondary-wrap">
+        <div id="no-secondary-label">副称号 / 小見出し</div>
+        <div id="no-secondary-title">数字の旅人</div>
+        <div id="no-secondary-desc"></div>
+      </div>
+      <div id="no-news-fact"></div>
+      <div id="no-reporter-eye">
+        <div id="no-reporter-eye-label">記者の目</div>
+        <div id="no-editor-comment"></div>
+        <div id="no-reporter-byline"></div>
+      </div>
+    </div>
+    <div id="no-stats" class="mx-auto mt-4 grid max-w-[680px] grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-[var(--viz-border)] bg-[var(--viz-panel)] p-3 text-sm sm:grid-cols-4"></div>
+    <div id="no-badges" class="mt-3 flex flex-wrap justify-center gap-2"></div>
+    <div class="mx-auto mt-4 flex max-w-[680px] flex-wrap justify-center gap-2 border-t border-[var(--viz-border)] pt-3">
+      <button id="no-copy-one" type="button" class="min-h-9 rounded-lg border border-[var(--viz-border)] bg-[var(--viz-panel)] px-3 py-1.5 text-xs font-medium">今回の記録をコピー</button>
+      <button id="no-copy-all" type="button" class="min-h-9 rounded-lg border border-[var(--viz-border)] bg-[var(--viz-panel)] px-3 py-1.5 text-xs font-medium">累計ログ（整理版）をコピー</button>
+      <span id="no-log-count" class="self-center text-xs text-[var(--viz-muted)]">保存ログ 0局</span>
+    </div>
+  </section>
+
+  <div id="no-game" class="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px] md:items-start" hidden>
+    <div class="min-w-0">
+      <div id="no-board" class="mx-auto grid aspect-square w-full max-w-[560px] grid-cols-9 overflow-hidden rounded-lg border-2 border-[var(--viz-text)] bg-[var(--viz-panel)]" role="grid" aria-label="ナンバープレイス盤面"></div>
+      <p class="mx-auto mt-2 max-w-[560px] text-xs leading-5 text-[var(--viz-muted)]">上段の「候補表示」で自動候補をON/OFFできます。OFFでも自分で触ったメモ候補は表示。自動確定はマスと数字が黄色く光って「シャッ」。</p>
+    </div>
+
+    <aside class="mx-auto w-full max-w-[290px] min-w-0 md:max-w-none">
+      <button id="no-note" type="button" aria-pressed="false" class="mb-2.5 min-h-10 w-full rounded-lg border border-[var(--viz-border)] bg-[var(--viz-panel)] px-3 py-1.5 text-sm font-semibold">メモ入力：OFF</button>
+      <div class="grid grid-cols-3 gap-2.5" aria-label="数字入力">
+        <button type="button" data-num="1" class="no-key">1</button><button type="button" data-num="2" class="no-key">2</button><button type="button" data-num="3" class="no-key">3</button>
+        <button type="button" data-num="4" class="no-key">4</button><button type="button" data-num="5" class="no-key">5</button><button type="button" data-num="6" class="no-key">6</button>
+        <button type="button" data-num="7" class="no-key">7</button><button type="button" data-num="8" class="no-key">8</button><button type="button" data-num="9" class="no-key">9</button>
+      </div>
+      <button id="no-undo" type="button" class="mt-2.5 min-h-9 w-full rounded-lg border border-[var(--viz-border)] bg-[var(--viz-panel)] px-3 py-1.5 text-sm">一手戻す</button>
+      <div class="mt-3 grid grid-cols-2 gap-2 md:grid-cols-1">
+        <button id="no-check" type="button" class="min-h-9 rounded-lg border border-[var(--viz-border)] bg-[var(--viz-panel)] px-2.5 py-1.5 text-sm font-medium">答え合わせ</button>
+        <button id="no-hint" type="button" class="min-h-9 rounded-lg border border-[var(--viz-border)] bg-[var(--viz-panel)] px-2.5 py-1.5 text-sm font-medium">ヒント（残り3）</button>
+      </div>
+      <div class="mt-5 border-t border-[var(--viz-border)] pt-3">
+        <div class="grid grid-cols-3 gap-2">
+          <button id="no-reset" type="button" class="min-h-9 rounded-lg border border-[var(--viz-border)] bg-[var(--viz-panel)] px-2 py-1.5 text-xs font-medium">リセット</button>
+          <button id="no-save" type="button" class="min-h-9 rounded-lg border border-[var(--viz-border)] bg-[var(--viz-panel)] px-2 py-1.5 text-xs font-medium">セーブ</button>
+          <button id="no-load" type="button" class="min-h-9 rounded-lg border border-[var(--viz-border)] bg-[var(--viz-panel)] px-2 py-1.5 text-xs font-medium">ロード</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <style>
+    #np-observer-game .no-cell{min-width:0;aspect-ratio:1/1;border:0;border-right:1px solid var(--viz-border);border-bottom:1px solid var(--viz-border);background:transparent;font-size:clamp(16px,5vw,26px);font-weight:600;line-height:1;display:flex;align-items:center;justify-content:center;outline:none;padding:0;position:relative;isolation:isolate;overflow:hidden}
+    #np-observer-game .no-cell:nth-child(9n){border-right:0}#np-observer-game .no-cell.box-r{border-right:2px solid var(--viz-text)}#np-observer-game .no-cell.box-b{border-bottom:2px solid var(--viz-text)}
+    #np-observer-game .no-cell.given{font-weight:800}#np-observer-game .no-cell.auto{font-weight:700}
+    /* v5.5 selection support: quiet at rest, row/column on tap, same confirmed numbers in a distinct color. */
+    #np-observer-game .no-cell.peer{background:var(--viz-peer-bg)}
+    #np-observer-game .no-cell.same{background:var(--viz-same-bg);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--viz-accent) 38%,transparent)}
+    #np-observer-game .no-cell.selected{background:var(--viz-selected-bg);box-shadow:inset 0 0 0 2px var(--viz-accent)}
+    #np-observer-game .no-cell.hint-target{outline:3px solid var(--viz-accent);outline-offset:-4px}
+    #np-observer-game .no-hint-ghost{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(24px,7vw,38px);font-weight:850;color:var(--viz-accent);opacity:.5;text-shadow:0 0 10px color-mix(in srgb,var(--viz-accent) 35%,transparent);pointer-events:none;animation:no-hint-float 1.2s ease-in-out infinite alternate}
+    #np-observer-game .no-value{position:relative;z-index:2;display:inline-block}
+    #np-observer-game .no-cell.number-glow .no-value{animation:no-number-glow .28s ease-out both}
+    #np-observer-game .no-cell.wrong{color:var(--viz-series-2);text-decoration:underline;text-decoration-thickness:2px}
+    #np-observer-game .no-cell.flash::after{content:'';position:absolute;inset:1px;z-index:-1;background:color-mix(in srgb,var(--viz-accent) 34%,white 66%);animation:no-flash .18s ease-out forwards}
+    #np-observer-game .no-cell.confirm-flash::after{content:'';position:absolute;inset:0;z-index:-1;background:#ffd84d;animation:no-confirm .18s ease-out forwards}
+    #np-observer-game .no-candidates{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:94%;height:94%;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:clamp(9px,2.3vw,14px);font-weight:750;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;line-height:1;color:var(--viz-muted);pointer-events:none}
+    #np-observer-game .no-candidate{display:flex;align-items:center;justify-content:center;transform-origin:center;position:relative;z-index:1}#np-observer-game .no-candidate.vanish{animation:no-pop .12s ease-in forwards}
+    #np-observer-game .no-key{min-height:54px;border-radius:.7rem;border:1px solid var(--viz-border);background:var(--viz-card);font-size:1.45rem;font-weight:750;transition:opacity .15s ease,transform .06s ease}#np-observer-game .no-key:active{transform:scale(.96)}#np-observer-game .no-key.done{opacity:.25}
+    #np-observer-game #no-note[aria-pressed="true"],#np-observer-game #no-guard[aria-pressed="true"],#np-observer-game #no-candidates-toggle[aria-pressed="true"],#np-observer-game #no-dark[aria-pressed="true"]{background:var(--viz-accent-bg);box-shadow:inset 0 0 0 2px var(--viz-accent)}
+    #np-observer-game button:disabled{opacity:.42}
+    #np-observer-game .stat-label{display:block;font-size:11px;color:var(--viz-muted)}#np-observer-game .stat-value{display:block;margin-top:1px;font-weight:800;font-size:15px}
+    #np-observer-game .badge{border:1px solid var(--viz-border);border-radius:999px;background:var(--viz-panel);padding:4px 9px;font-size:11px;font-weight:650}
+    @keyframes no-pop{0%{opacity:1;transform:scale(1)}55%{opacity:.95;transform:scale(1.4)}100%{opacity:0;transform:scale(.05)}}
+    @keyframes no-flash{0%{opacity:0;transform:scale(.86)}30%{opacity:1}100%{opacity:0;transform:scale(1)}}
+    @keyframes no-confirm{0%{opacity:0;transform:scale(.78)}25%{opacity:1;transform:scale(1)}68%{opacity:.9}100%{opacity:0;transform:scale(1.04)}}
+    @keyframes no-number-glow{0%{transform:scale(.72);color:#fff7b0;text-shadow:0 0 3px #fff,0 0 9px #ffd84d,0 0 18px #ffd84d;filter:brightness(1.7)}38%{transform:scale(1.2);color:#fff4a3;text-shadow:0 0 5px #fff,0 0 12px #ffd84d,0 0 22px #ffd84d;filter:brightness(1.9)}100%{transform:scale(1);color:inherit;text-shadow:none;filter:brightness(1)}}
+    @keyframes no-hint-float{from{transform:translateY(1px) scale(.98);opacity:.4}to{transform:translateY(-2px) scale(1.04);opacity:.62}}
+  </style>
+
+  <script>
+  (()=>{
+    const root=document.getElementById('np-observer-game');if(!root||root.dataset.ready==='1')return;root.dataset.ready='1';
+    const $=s=>root.querySelector(s),gameEl=$('#no-game'),boardEl=$('#no-board'),statusEl=$('#no-status'),levelEl=$('#no-level'),guardBtn=$('#no-guard'),candidateBtn=$('#no-candidates-toggle'),volumeBtn=$('#no-volume'),darkBtn=$('#no-dark'),newBtn=$('#no-new'),checkBtn=$('#no-check'),hintBtn=$('#no-hint'),undoBtn=$('#no-undo'),noteBtn=$('#no-note'),timerEl=$('#no-timer'),cluesEl=$('#no-clues'),resetBtn=$('#no-reset'),saveBtn=$('#no-save'),loadBtn=$('#no-load'),resultEl=$('#no-result'),titleEl=$('#no-title'),titleDescEl=$('#no-title-desc'),secondaryTitleEl=$('#no-secondary-title'),secondaryDescEl=$('#no-secondary-desc'),newsFactEl=$('#no-news-fact'),editorCommentEl=$('#no-editor-comment'),reporterBylineEl=$('#no-reporter-byline'),resultTimeEl=$('#no-result-time'),statsEl=$('#no-stats'),badgesEl=$('#no-badges'),copyOneBtn=$('#no-copy-one'),copyAllBtn=$('#no-copy-all'),logCountEl=$('#no-log-count'),keyBtns=[...root.querySelectorAll('.no-key')];
+    // Storage keys deliberately retain old names so v3/v4 browser-side records survive the upgrade.
+    const LOG_KEY='np_playlog_v3',TITLE_KEY='np_title_history_v3',PREF_KEY='np_preferences_v4',ARTICLE_KEY='np_newspaper_history_v1',AUTOSAVE_KEY='np_active_game_v1',SCHEMA='np-playlog-v5',COMPAT_SCHEMAS=['np-playlog-v4','np-playlog-v3'],LONG_THINK=15,QUICK_THINK=5,THINK_ANALYSIS_CAP=300,VERY_LONG_PAUSE=300,MAX_LOGS=100,MAX_DETAILED_LOGS=12,EXPORT_DETAILED_LOGS=3;
+    const BASE_CLUES={easy:40,normal:34,hard:28};
+    // Difficulty is selected by both clue count and the playable board left after naked-single preflight.
+    const CLUE_BANDS={easy:[40,39,38,37,36],normal:[34,33,32],hard:[28]};
+    const START_EMPTY_RANGE={easy:[35,53],normal:[24,44],hard:[34,53]};
+    let puzzle=[],solution=[],values=[],given=[],locked=[],autoFilled=[],displaySets=[],manualMemo=[];
+    let selected=-1,elapsed=0,timerId=null,completed=false,memoMode=false,busy=false,runId=0,saveState=null,startState=null,undoStack=[],guardEnabled=true,candidateVisible=false,darkMode=false,soundVolume='medium';
+    let audioCtx=null,noiseBuffer=null,masterGain=null,clearPlayed=false,readyAt=performance.now(),lastCompletedRecord=null,awaitingPostLoad=false,pendingMoveIndex=-1,pendingAutoResume=null,autosaveTick=0,candidateVisibleSince=null;
+    let wrongPathActive=false,wrongPathPeak=0,gameStartedAt=performance.now(),sessionStartedAt=performance.now(),currentGenerationMeta={base:34,actual:34,extra:0,regenerations:0,startRange:[24,44],startEmpties:0},stats={};
+    let currentAttempt=null,hintUsedThisAttempt=0,currentExplore=null,hintSuggestion=null;
+
+    function resetStats(){stats={
+      selfInputs:0,memoInputs:0,hintsUsed:0,undos:0,saves:0,loads:0,checks:0,wrongChecks:0,wrongCellsSeen:0,
+      guardToggles:0,candidateToggles:0,candidateViewEpisodes:0,candidateViewTotalSec:0,candidateViewMaxSec:0,candidateQuickPeeks:0,guardStops:0,guardOffMoves:0,maxChain:0,totalAuto:0,chainEvents:0,hintChainMax:0,hintFollowedInputs:0,hintFollowLatencyTotalSec:0,hintFollowLatencyMaxSec:0,postLoadFirstChainMax:0,clearChain:0,
+      candidateRemovals:0,zeroChainMoves:0,maxDryStreak:0,currentDryStreak:0,longThinkCount:0,totalThinkSec:0,maxThinkSec:0,longThinkChainMax:0,quickInputs:0,
+      wrongInputs:0,wrongInputChainMax:0,wrongWorldlineChainMax:0,phantomChainMax:0,wrongPathRecoveries:0,wrongPathUndoRecoveries:0,wrongPathLoadRecoveries:0,wrongPathHintRecoveries:0,wrongPathOverwriteRecoveries:0,wrongPathResetRecoveries:0,
+      positiveInputChains:0,positiveInputChainTotal:0,longThinkHitCount:0,longThinkZeroCount:0,longThinkChainTotal:0,
+      resets:0,attemptCount:1,attempts:[],nearClearCount:0,nearClearChainMax:0,nearClearRemainingMin:99,
+      phantomNearClearCount:0,phantomNearClearChainMax:0,phantomNearClearRemainingMin:99,wrongPathEntries:0,wrongPathPeaks:[],
+      openingRecorded:false,openingChain:0,openingRemoved:0,openingThinkSec:0,openingFinished:false,openingCorrect:false,openingMemoInputs:0,
+      analysisThinkTotalSec:0,maxAnalysisThinkSec:0,veryLongPauseCount:0,
+      cellTaps:0,selectionChanges:0,confirmedCellTaps:0,emptyCellTaps:0,sameNumberAssistTaps:0,confirmedDigitSwitches:0,confirmedTapCountsByDigit:Array(10).fill(0),confirmedDigitsSeen:Array(10).fill(false),
+      totalQuietBeforeInputSec:0,maxQuietBeforeInputSec:0,maxCellTapsBeforeInput:0,maxConfirmedTapsBeforeInput:0,maxDistinctConfirmedDigitsBeforeInput:0,maxSelectionChangesBeforeInput:0,
+      thinkTimes:[],chainLengths:[],chainTriggers:[],moves:[],events:[],initialClues:0,preflightAuto:0,startEmpties:0,difficulty:'normal',
+      generatorBaseClues:0,generatorActualClues:0,generatorExtraRemoved:0,generatorRegenerations:0,generatorStartRange:[0,0],generatorSelectedStartEmpties:0,generatorOpeningPotentialMin:null,generatorOpeningPotentialMax:null,generatorOpeningJackpot:false,sessionRestores:0
+    };pendingMoveIndex=-1;wrongPathActive=false;wrongPathPeak=0;currentAttempt=null;hintUsedThisAttempt=0;currentExplore=null;hintSuggestion=null;}
+    resetStats();
+    const range=n=>Array.from({length:n},(_,i)=>i),sleep=ms=>new Promise(r=>setTimeout(r,ms)),cloneSets=a=>a.map(s=>new Set([...s]));
+    const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+    const pattern=(r,c)=>(r*3+Math.floor(r/3)+c)%9;
+    function safeRead(key,fallback){try{const x=JSON.parse(localStorage.getItem(key)||'null');return x??fallback;}catch(e){return fallback;}}
+    function safeWrite(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true;}catch(e){return false;}}
+    function safeRemove(key){try{localStorage.removeItem(key);}catch(e){}}
+    function packSnapshot(s){if(!s)return null;return{...s,displaySets:(s.displaySets||[]).map(x=>[...x])};}
+    function unpackSnapshot(s){if(!s)return null;return{...s,displaySets:(s.displaySets||[]).map(x=>new Set(x||[]))};}
+    function clearActiveGame(){safeRemove(AUTOSAVE_KEY);}
+    function autosaveActiveGame(force=false){
+      if(!puzzle.length||completed||(!force&&busy))return false;
+      const now=performance.now(),hint=hintSuggestion?{...hintSuggestion,shownAgoMs:hintSuggestion.shownAt?Math.max(0,now-hintSuggestion.shownAt):0}:null;
+      const payload={version:1,appVersion:'5.8',savedAt:Date.now(),level:levelEl.value,puzzle:puzzle.slice(),solution:solution.slice(),values:values.slice(),given:given.slice(),locked:locked.slice(),autoFilled:autoFilled.slice(),displaySets:displaySets.map(x=>[...x]),manualMemo:manualMemo.slice(),selected,memoMode,elapsed,saveState:packSnapshot(saveState),startState:packSnapshot(startState),undoStack:undoStack.slice(-20).map(packSnapshot),stats,currentAttempt,hintUsedThisAttempt,hintSuggestion:hint,wrongPathActive,wrongPathPeak,awaitingPostLoad,pendingMoveIndex,pendingAutoResume,currentGenerationMeta,gameElapsedMs:Math.max(0,now-gameStartedAt),sessionElapsedMs:Math.max(0,now-sessionStartedAt),statusText:statusEl.textContent||''};
+      return safeWrite(AUTOSAVE_KEY,payload);
+    }
+    function restoreActiveGame(){
+      const a=safeRead(AUTOSAVE_KEY,null);if(!a||a.version!==1||!Array.isArray(a.values)||a.values.length!==81||!Array.isArray(a.solution)||a.solution.length!==81)return false;
+      try{
+        runId++;if(timerId)clearInterval(timerId);busy=false;completed=false;clearPlayed=false;lastCompletedRecord=null;resultEl.classList.add('hidden');
+        if(['easy','normal','hard'].includes(a.level))levelEl.value=a.level;
+        puzzle=(a.puzzle||[]).slice();solution=a.solution.slice();values=a.values.slice();given=(a.given||Array(81).fill(false)).slice();locked=(a.locked||given).slice();autoFilled=(a.autoFilled||Array(81).fill(false)).slice();displaySets=(a.displaySets||Array.from({length:81},()=>[])).map(x=>new Set(x||[]));manualMemo=(a.manualMemo||Array(81).fill(false)).slice();selected=Number.isInteger(a.selected)?a.selected:-1;memoMode=!!a.memoMode;elapsed=Number(a.elapsed)||0;
+        saveState=unpackSnapshot(a.saveState);startState=unpackSnapshot(a.startState);undoStack=(a.undoStack||[]).map(unpackSnapshot).filter(Boolean);resetStats();stats={...stats,...(a.stats||{})};currentAttempt=a.currentAttempt||null;hintUsedThisAttempt=Number(a.hintUsedThisAttempt)||0;wrongPathActive=!!a.wrongPathActive;wrongPathPeak=Number(a.wrongPathPeak)||0;awaitingPostLoad=!!a.awaitingPostLoad;pendingMoveIndex=Number.isInteger(a.pendingMoveIndex)?a.pendingMoveIndex:-1;pendingAutoResume=a.pendingAutoResume||null;currentGenerationMeta=a.currentGenerationMeta||currentGenerationMeta;
+        if(a.hintSuggestion){hintSuggestion={...a.hintSuggestion,shownAt:performance.now()-Math.max(0,Number(a.hintSuggestion.shownAgoMs)||0)};delete hintSuggestion.shownAgoMs;}else hintSuggestion=null;
+        const now=performance.now();gameStartedAt=now-Math.max(0,Number(a.gameElapsedMs)||0);sessionStartedAt=now-Math.max(0,Number(a.sessionElapsedMs)||0);candidateVisibleSince=candidateVisible?now:null;
+        noteBtn.setAttribute('aria-pressed',String(memoMode));noteBtn.textContent=`メモ入力：${memoMode?'ON':'OFF'}`;render();cluesEl.textContent=stats.preflightAuto?`初期 ${stats.initialClues}＋自動 ${stats.preflightAuto}`:`初期 ${stats.initialClues}`;gameEl.hidden=false;newBtn.disabled=false;restartTimer(elapsed);markReady();setStatus(a.statusText||'ゲーム中。');stats.sessionRestores=(stats.sessionRestores||0)+1;event('session_restored',{attempt:stats.attemptCount});autosaveActiveGame(true);
+        if(pendingAutoResume){const pa={...pendingAutoResume};setBusy(true);setStatus('自動チェックを再開します…');setTimeout(()=>{if(!completed)runAutoCheck('自動チェックを再開します…',pa.trigger||'input',Number(pa.thinkSec)||0);},80);}
+        return true;
+      }catch(e){clearActiveGame();return false;}
+    }
+    function compactRecord(r){if(!r||typeof r!=='object')return r;if(r.logDetail==='summary'&&!r.moves&&!r.events)return r;return{schema:r.schema||SCHEMA,compatibleWith:Array.isArray(r.compatibleWith)?r.compatibleWith.slice():COMPAT_SCHEMAS.slice(),appVersion:r.appVersion||null,logDetail:'summary',finishedAt:r.finishedAt||null,difficulty:r.difficulty||null,elapsedSec:r.elapsedSec??null,initialClues:r.initialClues??null,preflightAuto:r.preflightAuto??null,startEmpties:r.startEmpties??null,titleFamily:r.titleFamily||null,title:r.title||null,secondaryTitleFamily:r.secondaryTitleFamily||null,secondaryTitle:r.secondaryTitle||null,newspaper:r.newspaper||null,generation:r.generation||null,settings:r.settings||null,summary:r.summary||null,observation:r.observation||null,titleEngine:r.titleEngine||null};}
+    function organizeLogArray(input){const logs=(Array.isArray(input)?input:[]).slice(-MAX_LOGS),cut=Math.max(0,logs.length-MAX_DETAILED_LOGS);return logs.map((r,i)=>i<cut?compactRecord(r):r);}
+    function savedLogs(){const x=safeRead(LOG_KEY,[]);return Array.isArray(x)?x:[];}
+    function saveOrganizedLogs(input){let logs=organizeLogArray(input);if(safeWrite(LOG_KEY,logs))return logs;logs=logs.map(compactRecord);while(logs.length&& !safeWrite(LOG_KEY,logs))logs.shift();return logs;}
+    function organizeStoredLogs(){const raw=savedLogs(),organized=organizeLogArray(raw);if(JSON.stringify(raw)!==JSON.stringify(organized))safeWrite(LOG_KEY,organized);return organized;}
+    function updateLogCount(){const logs=savedLogs(),detail=logs.filter(r=>r&&r.logDetail!=='summary').length;logCountEl.textContent=`保存ログ ${logs.length}局（詳細${detail}）`;}
+    function event(type,data={}){stats.events.push({t:Math.round(performance.now()-gameStartedAt),type,...data});if(stats.events.length>320)stats.events.shift();}
+    function savePrefs(){safeWrite(PREF_KEY,{level:levelEl.value,guardEnabled,candidateVisible,darkMode,soundVolume});}
+    function applyTheme(){document.documentElement.dataset.theme=darkMode?'dark':'light';darkBtn.setAttribute('aria-pressed',String(darkMode));darkBtn.textContent=`ダークモード：${darkMode?'ON':'OFF'}`;}
+    function applyCandidateVisibility(){candidateBtn.setAttribute('aria-pressed',String(candidateVisible));candidateBtn.textContent=`候補表示：${candidateVisible?'ON':'OFF'}`;}
+    const SOUND_ORDER=['off','small','medium','large'],SOUND_LABEL={off:'切',small:'小',medium:'中',large:'大'},SOUND_GAIN={off:0,small:.5,medium:1,large:1.8};
+    function applySoundVolume(){if(!SOUND_ORDER.includes(soundVolume))soundVolume='medium';volumeBtn.textContent=`効果音：${SOUND_LABEL[soundVolume]}`;if(masterGain&&audioCtx){masterGain.gain.setTargetAtTime(SOUND_GAIN[soundVolume],audioCtx.currentTime,.01);}}
+    function loadPrefs(){const p=safeRead(PREF_KEY,{});if(['easy','normal','hard'].includes(p.level))levelEl.value=p.level;guardEnabled=p.guardEnabled!==false;candidateVisible=p.candidateVisible===true;darkMode=!!p.darkMode;soundVolume=SOUND_ORDER.includes(p.soundVolume)?p.soundVolume:'medium';applyTheme();applyCandidateVisibility();applySoundVolume();}
+
+    function makeSolved(){const rows=[0,1,2].flatMap(g=>shuffle([0,1,2]).map(r=>g*3+r)),cols=[0,1,2].flatMap(g=>shuffle([0,1,2]).map(c=>g*3+c)),nums=shuffle([1,2,3,4,5,6,7,8,9]);return rows.flatMap(r=>cols.map(c=>nums[pattern(r,c)]));}
+    function candidates(grid,idx){if(grid[idx]!==0)return[];const r=Math.floor(idx/9),c=idx%9,u=new Set();for(let k=0;k<9;k++){if(grid[r*9+k])u.add(grid[r*9+k]);if(grid[k*9+c])u.add(grid[k*9+c]);}const br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;for(let rr=br;rr<br+3;rr++)for(let cc=bc;cc<bc+3;cc++)if(grid[rr*9+cc])u.add(grid[rr*9+cc]);return[1,2,3,4,5,6,7,8,9].filter(n=>!u.has(n));}
+    function countSolutions(grid,limit=2){const g=grid.slice();let count=0;function solve(){if(count>=limit)return;let best=-1,bc=null;for(let i=0;i<81;i++)if(g[i]===0){const c=candidates(g,i);if(!c.length)return;if(best===-1||c.length<bc.length){best=i;bc=c;if(c.length===1)break;}}if(best===-1){count++;return;}for(const n of bc){g[best]=n;solve();g[best]=0;if(count>=limit)return;}}solve();return count;}
+    function generate(level,target=BASE_CLUES[level]||34){const solved=makeSolved(),g=solved.slice();let clues=81;for(const idx of shuffle(range(81))){if(clues<=target)break;const keep=g[idx];g[idx]=0;if(countSolutions(g,2)!==1)g[idx]=keep;else clues--;}return{puzzle:g,solution:solved,clues,target};}
+    function simulatePreflight(puz,sol){const v=puz.slice(),mask=Array(81).fill(false);let filled=0;while(true){let f=-1,n=0;for(let i=0;i<81;i++){if(v[i])continue;const c=candidates(v,i);if(c.length===1){f=i;n=c[0];break;}}if(f<0)break;v[f]=n;mask[f]=true;filled++;}return{values:v,autoMask:mask,prefilled:filled,complete:v.every((x,i)=>x===sol[i])};}
+    function firstSingle(grid){for(let i=0;i<81;i++){if(grid[i])continue;const c=candidates(grid,i);if(c.length===1)return{idx:i,num:c[0]};}return null;}
+    function prefillSingles(grid,count){const v=grid.slice();let filled=0;while(filled<count){const s=firstSingle(v);if(!s)break;v[s.idx]=s.num;filled++;}return{values:v,filled};}
+    function openingCascadePotential(grid,idx,num){const v=grid.slice();v[idx]=num;let filled=0;while(true){const s=firstSingle(v);if(!s)break;v[s.idx]=s.num;filled++;}return{filled,complete:v.every(Boolean),remaining:v.filter(x=>x===0).length};}
+    function visibleSingles(grid){const out=[];for(let i=0;i<81;i++){if(grid[i])continue;const c=candidates(grid,i);if(c.length===1)out.push({idx:i,num:c[0]});}return out;}
+    // v5: keep the requested level and select for a sensible playable-board size after preflight.
+    // We prefer the advertised clue count; only step down inside a narrow same-level band when necessary.
+    function generatePlayable(level){
+      const base=BASE_CLUES[level]||34,band=CLUE_BANDS[level]||[base],rangeGoal=START_EMPTY_RANGE[level]||[24,44];
+      let attempts=0,best=null;
+      // v5.8: EASY keeps a visible naked single, but normally avoids the old "every game is a 40-chain" outcome.
+      // Internally we make a sparse unique puzzle, resolve a few forced cells, then promote those cells to ordinary givens.
+      // The visible board still has 40 clues / 41 blanks, while its opening fuse is usually short-to-medium. About 10% remain true jackpots.
+      if(level==='easy'){
+        const jackpot=Math.random()<.10;
+        if(jackpot){
+          for(let k=0;k<10;k++){
+            attempts++;
+            const made=generate(level,40),raw=made.puzzle.slice(),singles=visibleSingles(raw);
+            if(!singles.length)continue;
+            const pots=singles.map(x=>openingCascadePotential(raw,x.idx,x.num).filled),maxP=Math.max(...pots),minP=Math.min(...pots),pre={values:raw,autoMask:Array(81).fill(false),prefilled:0,complete:false};
+            return{made,pre,base,regenerations:attempts-1,startRange:rangeGoal,startEmpties:41,score:0,easyOpeningPotentialMin:minP,easyOpeningPotentialMax:maxP,easyOpeningJackpot:true};
+          }
+        }
+        const sourceClues=34,prefillCount=6;
+        for(let k=0;k<24;k++){
+          attempts++;
+          const source=generate(level,sourceClues),pf=prefillSingles(source.puzzle,prefillCount);
+          if(pf.filled<prefillCount)continue;
+          const raw=pf.values,singles=visibleSingles(raw);if(!singles.length)continue;
+          const potentials=singles.map(x=>openingCascadePotential(raw,x.idx,x.num)),maxP=Math.max(...potentials.map(x=>x.filled)),minP=Math.min(...potentials.map(x=>x.filled)),anyClear=potentials.some(x=>x.complete);
+          const made={...source,puzzle:raw.slice(),clues:40,target:40,sourceClues},pre={values:raw.slice(),autoMask:Array(81).fill(false),prefilled:0,complete:false};
+          const score=(anyClear?120:0)+Math.abs(maxP-9)+(maxP<3?12:0)+(maxP>18?20:0),candidate={made,pre,base,regenerations:attempts-1,startRange:rangeGoal,startEmpties:41,score,easyOpeningPotentialMin:minP,easyOpeningPotentialMax:maxP,easyOpeningJackpot:false};
+          if(!best||candidate.score<best.score)best=candidate;
+          if(!anyClear&&maxP>=3&&maxP<=16)return candidate;
+        }
+        if(best)return best;
+        // Rare fallback: if the controlled fuse could not be built, keep the v5.7 raw-board behavior rather than blocking play.
+        for(let k=0;k<10;k++){
+          attempts++;const made=generate(level,40),raw=made.puzzle.slice(),singles=visibleSingles(raw);if(!singles.length)continue;
+          const pots=singles.map(x=>openingCascadePotential(raw,x.idx,x.num).filled),pre={values:raw,autoMask:Array(81).fill(false),prefilled:0,complete:false};
+          return{made,pre,base,regenerations:attempts-1,startRange:rangeGoal,startEmpties:41,score:999,easyOpeningPotentialMin:Math.min(...pots),easyOpeningPotentialMax:Math.max(...pots),easyOpeningJackpot:true};
+        }
+      }
+      const penalty=(empties,target)=>{
+        const [lo,hi]=rangeGoal,dist=empties<lo?lo-empties:empties>hi?empties-hi:0;
+        return dist*20+(base-target)*5+Math.abs(empties-(lo+hi)/2)*.08;
+      };
+      for(const target of band){
+        const perTarget=level==='normal'?14:12;
+        for(let k=0;k<perTarget;k++){
+          attempts++;
+          const made=generate(level,target),pre=simulatePreflight(made.puzzle,made.solution);
+          if(pre.complete)continue;
+          const empties=pre.values.filter(v=>v===0).length,p=penalty(empties,target),candidate={made,pre,base,regenerations:attempts-1,startRange:rangeGoal,startEmpties:empties,score:p};
+          if(!best||p<best.score)best=candidate;
+          if(empties>=rangeGoal[0]&&empties<=rangeGoal[1])return candidate;
+        }
+      }
+      if(best)return best;
+      const target=band[band.length-1];
+      for(let k=0;k<160;k++){
+        attempts++;
+        const made=generate(level,target),pre=simulatePreflight(made.puzzle,made.solution);
+        if(!pre.complete){const empties=pre.values.filter(v=>v===0).length;return{made,pre,base,regenerations:attempts-1,startRange:rangeGoal,startEmpties:empties,score:999};}
+      }
+      const made=generate(level,target),pre=simulatePreflight(made.puzzle,made.solution),empties=pre.values.filter(v=>v===0).length;
+      return{made,pre,base,regenerations:attempts,startRange:rangeGoal,startEmpties:empties,score:9999};
+    }
+
+    const setStatus=t=>statusEl.textContent=t,formatTime=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+    function restartTimer(at=0){if(timerId)clearInterval(timerId);elapsed=at;autosaveTick=0;timerEl.textContent=formatTime(elapsed);timerId=setInterval(()=>{if(!completed){elapsed++;timerEl.textContent=formatTime(elapsed);autosaveTick++;if(autosaveTick>=5){autosaveTick=0;autosaveActiveGame();}}},1000);}
+    function resetExplore(at=performance.now()){currentExplore={startedAt:at,lastInteractionAt:at,cellTaps:0,selectionChanges:0,confirmedTaps:0,emptyTaps:0,sameNumberAssistTaps:0,confirmedDigits:new Set(),confirmedDigitSwitches:0,lastConfirmedDigit:0,memoActions:0};}
+    function markReady(){readyAt=performance.now();resetExplore(readyAt);}
+    function noteCellTap(i){if(!currentExplore)resetExplore(readyAt);const now=performance.now(),oldSelected=selected,v=values[i];stats.cellTaps++;currentExplore.cellTaps++;if(oldSelected!==i){stats.selectionChanges++;currentExplore.selectionChanges++;}if(v){stats.confirmedCellTaps++;currentExplore.confirmedTaps++;stats.confirmedTapCountsByDigit[v]++;stats.confirmedDigitsSeen[v]=true;currentExplore.confirmedDigits.add(v);const sameCount=values.reduce((a,x)=>a+(x===v?1:0),0);if(sameCount>1){stats.sameNumberAssistTaps++;currentExplore.sameNumberAssistTaps++;}if(currentExplore.lastConfirmedDigit&&currentExplore.lastConfirmedDigit!==v){stats.confirmedDigitSwitches++;currentExplore.confirmedDigitSwitches++;}currentExplore.lastConfirmedDigit=v;}else{stats.emptyCellTaps++;currentExplore.emptyTaps++;}currentExplore.lastInteractionAt=now;}
+    function noteMemoAction(){if(!currentExplore)resetExplore(readyAt);currentExplore.memoActions++;currentExplore.lastInteractionAt=performance.now();}
+    function captureExplore(thinkSec){if(!currentExplore)resetExplore(readyAt);const now=performance.now(),quiet=Math.max(0,(now-currentExplore.lastInteractionAt)/1000),x={cellTaps:currentExplore.cellTaps,selectionChanges:currentExplore.selectionChanges,confirmedTaps:currentExplore.confirmedTaps,emptyTaps:currentExplore.emptyTaps,sameNumberAssistTaps:currentExplore.sameNumberAssistTaps,distinctConfirmedDigits:currentExplore.confirmedDigits.size,confirmedDigitSwitches:currentExplore.confirmedDigitSwitches,memoActions:currentExplore.memoActions,quietBeforeInputSec:Number(Math.min(thinkSec,quiet).toFixed(1))};stats.totalQuietBeforeInputSec+=Math.min(thinkSec,quiet);stats.maxQuietBeforeInputSec=Math.max(stats.maxQuietBeforeInputSec,Math.min(thinkSec,quiet));stats.maxCellTapsBeforeInput=Math.max(stats.maxCellTapsBeforeInput,x.cellTaps);stats.maxConfirmedTapsBeforeInput=Math.max(stats.maxConfirmedTapsBeforeInput,x.confirmedTaps);stats.maxDistinctConfirmedDigitsBeforeInput=Math.max(stats.maxDistinctConfirmedDigitsBeforeInput,x.distinctConfirmedDigits);stats.maxSelectionChangesBeforeInput=Math.max(stats.maxSelectionChangesBeforeInput,x.selectionChanges);return x;}
+    function takeThink(){const s=Math.max(0,(performance.now()-readyAt)/1000);stats.thinkTimes.push(Number(s.toFixed(1)));stats.totalThinkSec+=s;stats.maxThinkSec=Math.max(stats.maxThinkSec,s);const capped=Math.min(s,THINK_ANALYSIS_CAP);stats.analysisThinkTotalSec+=capped;stats.maxAnalysisThinkSec=Math.max(stats.maxAnalysisThinkSec,capped);if(s>=VERY_LONG_PAUSE)stats.veryLongPauseCount++;if(s>=LONG_THINK)stats.longThinkCount++;if(s<=QUICK_THINK)stats.quickInputs++;return s;}
+
+    function ensureAudio(){try{if(!audioCtx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return;audioCtx=new C();masterGain=audioCtx.createGain();masterGain.gain.value=SOUND_GAIN[soundVolume]??1;const limiter=audioCtx.createDynamicsCompressor();limiter.threshold.value=-8;limiter.knee.value=10;limiter.ratio.value=8;limiter.attack.value=.003;limiter.release.value=.18;masterGain.connect(limiter);limiter.connect(audioCtx.destination);const len=Math.floor(audioCtx.sampleRate*.1);noiseBuffer=audioCtx.createBuffer(1,len,audioCtx.sampleRate);const d=noiseBuffer.getChannelData(0);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);}applySoundVolume();if(audioCtx.state==='suspended')audioCtx.resume();}catch(e){}}
+    function noise(t,f,v,d){if(!audioCtx||!noiseBuffer)return;const s=audioCtx.createBufferSource(),bp=audioCtx.createBiquadFilter(),g=audioCtx.createGain();s.buffer=noiseBuffer;bp.type='bandpass';bp.frequency.value=f;bp.Q.value=1.3;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.003);g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(bp);bp.connect(g);g.connect(masterGain||audioCtx.destination);s.start(t);s.stop(t+d+.01);}
+    function tone(t,type,f1,f2,v,d){if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.setValueAtTime(f1,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.003);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(masterGain||audioCtx.destination);o.start(t);o.stop(t+d+.01);}
+    function keySound(m){ensureAudio();if(!audioCtx||audioCtx.state!=='running')return;const t=audioCtx.currentTime;if(m){noise(t,1050,.055,.034);tone(t,'triangle',210,105,.03,.04);noise(t+.023,1600,.022,.018);}else{noise(t,2200,.035,.025);tone(t,'square',620,420,.018,.025);}}
+    function popSound(){ensureAudio();if(!audioCtx||audioCtx.state!=='running')return;const t=audioCtx.currentTime;noise(t,1750,.028,.018);tone(t,'sine',720,300,.026,.045);}
+    function confirmSound(){ensureAudio();if(!audioCtx||audioCtx.state!=='running')return;const t=audioCtx.currentTime;noise(t,3300,.026,.022);tone(t,'sine',1850,1120,.024,.055);tone(t+.012,'triangle',2600,1500,.014,.04);}
+    function startSound(){ensureAudio();if(!audioCtx||audioCtx.state!=='running')return;const t=audioCtx.currentTime;noise(t,900,.055,.04);tone(t,'triangle',150,95,.028,.055);noise(t+.055,1700,.04,.025);}
+    function clearSound(){ensureAudio();if(!audioCtx||audioCtx.state!=='running'||clearPlayed)return;clearPlayed=true;const t=audioCtx.currentTime;noise(t,720,.065,.07);tone(t,'square',125,78,.032,.085);noise(t+.055,1150,.045,.06);tone(t+.11,'sine',1320,1260,.042,.7);tone(t+.115,'sine',1980,1880,.021,.55);}
+
+    function isRowOrColumnPeer(a,b){const ar=Math.floor(a/9),ac=a%9,br=Math.floor(b/9),bc=b%9;return ar===br||ac===bc;}
+    function hasIncorrectUserEntry(){for(let i=0;i<81;i++)if(values[i]!==0&&!locked[i]&&values[i]!==solution[i])return true;return false;}
+    function boardHasWrongValue(){for(let i=0;i<81;i++)if(values[i]!==0&&values[i]!==solution[i])return true;return false;}
+    const legalSet=i=>new Set(candidates(values,i));
+    function drawCell(i){const cell=boardEl.children[i];if(!cell)return;cell.innerHTML='';cell.classList.remove('wrong','hint-target');if(values[i]){const v=document.createElement('span');v.className='no-value';v.textContent=String(values[i]);cell.appendChild(v);return;}const shown=displaySets[i]||new Set(),showSmall=candidateVisible||manualMemo[i],w=document.createElement('span');w.className='no-candidates';for(let n=1;n<=9;n++){const s=document.createElement('span');s.className='no-candidate';s.dataset.cand=String(n);s.textContent=showSmall&&shown.has(n)?String(n):'';w.appendChild(s);}cell.appendChild(w);if(hintSuggestion&&hintSuggestion.idx===i){cell.classList.add('hint-target');const g=document.createElement('span');g.className='no-hint-ghost';g.textContent=String(hintSuggestion.num);g.setAttribute('aria-label',`ヒント ${hintSuggestion.num}`);cell.appendChild(g);}}
+    function render(){boardEl.innerHTML='';for(let i=0;i<81;i++){const b=document.createElement('button'),r=Math.floor(i/9),c=i%9;b.type='button';b.className='no-cell';if(c===2||c===5)b.classList.add('box-r');if(r===2||r===5)b.classList.add('box-b');if(given[i])b.classList.add('given');else if(autoFilled[i])b.classList.add('auto');b.addEventListener('click',()=>{const clearHighlight=selected===i&&values[i]!==0;noteCellTap(i);selected=clearHighlight?-1:i;paintSelection();b.focus();});boardEl.appendChild(b);drawCell(i);}paintSelection();updateKeypad();updateControls();}
+    function paintSelection(){
+      const cells=[...boardEl.children];
+      cells.forEach(x=>x.classList.remove('selected','peer','same'));
+      if(selected<0||!cells[selected])return;
+      const selectedValue=values[selected];
+      cells.forEach((cell,i)=>{
+        if(i===selected)return;
+        if(isRowOrColumnPeer(selected,i))cell.classList.add('peer');
+        if(selectedValue!==0&&values[i]===selectedValue)cell.classList.add('same');
+      });
+      cells[selected].classList.add('selected');
+    }
+    function updateKeypad(){const counts=Array(10).fill(0);values.forEach(v=>{if(v)counts[v]++;});keyBtns.forEach(b=>b.classList.toggle('done',counts[Number(b.dataset.num)]>=9));}
+    const hintRemaining=()=>Math.max(0,3-hintUsedThisAttempt);
+    function updateControls(){hintBtn.textContent=`ヒント（残り${hintRemaining()}）`;hintBtn.disabled=busy||hintRemaining()<=0||completed;undoBtn.disabled=busy||undoStack.length===0;guardBtn.setAttribute('aria-pressed',String(guardEnabled));guardBtn.textContent=`連鎖ガード：${guardEnabled?'ON':'OFF'}`;applyCandidateVisibility();applySoundVolume();darkBtn.setAttribute('aria-pressed',String(darkMode));darkBtn.textContent=`ダークモード：${darkMode?'ON':'OFF'}`;}
+    function setBusy(v){busy=v;newBtn.disabled=v;checkBtn.disabled=v;noteBtn.disabled=v;levelEl.disabled=v;guardBtn.disabled=v;candidateBtn.disabled=v;resetBtn.disabled=v;saveBtn.disabled=v;loadBtn.disabled=v;keyBtns.forEach(b=>b.disabled=v);updateControls();if(!v&&!completed)markReady();}
+
+    function buildRemovals(){const a=[];for(let i=0;i<81;i++){if(values[i]){displaySets[i]=new Set();continue;}const legal=legalSet(i);if(!manualMemo[i])for(const n of legal)displaySets[i].add(n);for(const n of [...displaySets[i]])if(!legal.has(n))a.push({idx:i,num:n});}return a;}
+    async function animateRemovals(a,myRun){for(const x of a){if(myRun!==runId)return false;if(!displaySets[x.idx]?.has(x.num))continue;const visible=candidateVisible||manualMemo[x.idx],cell=boardEl.children[x.idx],span=cell?.querySelector(`[data-cand="${x.num}"]`);if(!visible){displaySets[x.idx].delete(x.num);drawCell(x.idx);continue;}if(cell){cell.classList.remove('flash');void cell.offsetWidth;cell.classList.add('flash');setTimeout(()=>cell.classList.remove('flash'),190);}if(span&&span.textContent){span.classList.add('vanish');popSound();}await sleep(120);if(myRun!==runId)return false;displaySets[x.idx].delete(x.num);drawCell(x.idx);paintSelection();await sleep(80);}paintSelection();return true;}
+    async function animateConfirm(idx,myRun){const cell=boardEl.children[idx];if(cell){cell.classList.remove('confirm-flash');void cell.offsetWidth;cell.classList.add('confirm-flash');}await sleep(120);return myRun===runId;}
+    function animateConfirmedNumber(idx){const cell=boardEl.children[idx];if(!cell)return;cell.classList.remove('number-glow');void cell.offsetWidth;cell.classList.add('number-glow');setTimeout(()=>cell.classList.remove('number-glow'),300);}
+    function findSingle(){if(guardEnabled&&hasIncorrectUserEntry())return null;for(let i=0;i<81;i++)if(!values[i]){const c=candidates(values,i);if(c.length===1)return{idx:i,num:c[0]};}return null;}
+    function recoverWrongPath(method){if(!wrongPathActive)return;stats.wrongPathRecoveries++;stats.phantomChainMax=Math.max(stats.phantomChainMax,wrongPathPeak);stats.wrongPathPeaks.push(wrongPathPeak);if(method==='undo')stats.wrongPathUndoRecoveries++;else if(method==='load')stats.wrongPathLoadRecoveries++;else if(method==='hint')stats.wrongPathHintRecoveries++;else if(method==='overwrite')stats.wrongPathOverwriteRecoveries++;else if(method==='reset')stats.wrongPathResetRecoveries++;event('wrong_path_recovered',{method,peak:wrongPathPeak});wrongPathActive=false;wrongPathPeak=0;}
+    function recordChain(filled,removed,trigger,thinkSec,finished){
+      stats.candidateRemovals+=removed;stats.chainLengths.push(filled);stats.chainTriggers.push(trigger);
+      if(filled>0){stats.chainEvents++;stats.totalAuto+=filled;stats.maxChain=Math.max(stats.maxChain,filled);}
+      if(trigger==='hint')stats.hintChainMax=Math.max(stats.hintChainMax,filled);
+      if(awaitingPostLoad&&trigger==='input'){stats.postLoadFirstChainMax=Math.max(stats.postLoadFirstChainMax,filled);awaitingPostLoad=false;}
+      if(trigger==='input'){
+        const move=stats.moves[pendingMoveIndex];
+        if(move){move.chain=filled;move.removed=removed;move.finished=!!finished;move.guardStopped=guardEnabled&&hasIncorrectUserEntry();if(move.hintMatched){stats.hintChainMax=Math.max(stats.hintChainMax,filled);event('hint_follow_chain',{hintId:move.hintId||null,filled,latencySec:move.hintLatencySec,attempt:stats.attemptCount});}if(!stats.openingRecorded){stats.openingRecorded=true;stats.openingChain=filled;stats.openingRemoved=removed;stats.openingThinkSec=Number(move.thinkSec||0);stats.openingFinished=!!finished;stats.openingCorrect=!!move.correct;stats.openingMemoInputs=Number(move.memoInputsBefore||0);}}
+        if(filled===0){stats.zeroChainMoves++;stats.currentDryStreak++;stats.maxDryStreak=Math.max(stats.maxDryStreak,stats.currentDryStreak);}else{stats.currentDryStreak=0;stats.positiveInputChains++;stats.positiveInputChainTotal+=filled;}
+        if(thinkSec>=LONG_THINK){stats.longThinkChainMax=Math.max(stats.longThinkChainMax,filled);stats.longThinkChainTotal+=filled;if(filled>0)stats.longThinkHitCount++;else stats.longThinkZeroCount++;}
+        if(!guardEnabled)stats.guardOffMoves++;
+        if(move&&!move.correct)stats.wrongInputChainMax=Math.max(stats.wrongInputChainMax,filled);
+        if(wrongPathActive){wrongPathPeak=Math.max(wrongPathPeak,filled);stats.wrongWorldlineChainMax=Math.max(stats.wrongWorldlineChainMax,filled);}
+        pendingMoveIndex=-1;
+      }
+      const remaining=values.filter(v=>v===0).length;
+      if(!finished&&filled>0&&remaining>=1&&remaining<=3){stats.nearClearCount++;stats.nearClearChainMax=Math.max(stats.nearClearChainMax,filled);stats.nearClearRemainingMin=Math.min(stats.nearClearRemainingMin,remaining);if(wrongPathActive){stats.phantomNearClearCount++;stats.phantomNearClearChainMax=Math.max(stats.phantomNearClearChainMax,filled);stats.phantomNearClearRemainingMin=Math.min(stats.phantomNearClearRemainingMin,remaining);}event('near_clear',{filled,remaining,wrongPath:!!wrongPathActive,attempt:stats.attemptCount});}
+      if(finished)stats.clearChain=filled;
+      event('chain',{trigger,filled,removed,think:Number((thinkSec||0).toFixed(1)),finished:!!finished,remaining,attempt:stats.attemptCount});
+    }
+    async function runAutoCheck(msg,trigger='input',thinkSec=0){const myRun=runId;setBusy(true);setStatus(msg);let removed=0,filled=0;while(myRun===runId){const rs=buildRemovals();if(rs.length){removed+=rs.length;if(!await animateRemovals(rs,myRun))return;}const s=findSingle();if(!s)break;if(!await animateConfirm(s.idx,myRun))return;values[s.idx]=s.num;locked[s.idx]=true;autoFilled[s.idx]=true;displaySets[s.idx]=new Set();manualMemo[s.idx]=false;filled++;confirmSound();render();animateConfirmedNumber(s.idx);await sleep(110);}if(myRun!==runId)return;const finished=values.every((v,i)=>v===solution[i]);recordChain(filled,removed,trigger,thinkSec,finished);pendingAutoResume=null;render();setBusy(false);if(finished){finish(true);return;}
+      // Guard activity remains in the diagnostic log, but intentionally produces no correctness-revealing message.
+      if(guardEnabled&&hasIncorrectUserEntry()){stats.guardStops++;event('guard_stop');}
+      setStatus(removed||filled?`自動チェック完了：候補 ${removed} 個削除、${filled} マス自動確定。`:'自動チェック完了。候補に変化はありません。');autosaveActiveGame();
+    }
+
+    function beginAttempt(){
+      currentAttempt={attempt:stats.attemptCount,startedAtT:Math.round(performance.now()-gameStartedAt),moveIndex:stats.moves.length,thinkIndex:stats.thinkTimes.length,chainIndex:stats.chainLengths.length,eventIndex:stats.events.length,memoInputs:stats.memoInputs,hintsUsed:stats.hintsUsed,undos:stats.undos,saves:stats.saves,loads:stats.loads,checks:stats.checks,wrongInputs:stats.wrongInputs};
+      event('attempt_start',{attempt:stats.attemptCount});
+    }
+    function finalizeAttempt(outcome){
+      if(!currentAttempt)return null;
+      const moves=stats.moves.slice(currentAttempt.moveIndex),chains=moves.map(m=>Number(m.chain||0)),thinks=stats.thinkTimes.slice(currentAttempt.thinkIndex),attemptEvents=stats.events.slice(currentAttempt.eventIndex),nearEvents=attemptEvents.filter(e=>e.type==='near_clear'),remaining=values.filter(v=>v===0).length;
+      const rec={attempt:currentAttempt.attempt,outcome,elapsedSec:elapsed,selfInputs:moves.length,memoInputs:stats.memoInputs-currentAttempt.memoInputs,hintsUsed:stats.hintsUsed-currentAttempt.hintsUsed,undos:stats.undos-currentAttempt.undos,saves:stats.saves-currentAttempt.saves,loads:stats.loads-currentAttempt.loads,checks:stats.checks-currentAttempt.checks,wrongInputs:stats.wrongInputs-currentAttempt.wrongInputs,maxChain:chains.length?Math.max(...chains):0,totalInputChain:chains.reduce((a,b)=>a+b,0),maxThinkSec:thinks.length?Math.max(...thinks):0,longThinkCount:thinks.filter(x=>x>=LONG_THINK).length,remainingAtEnd:remaining,nearClearCount:nearEvents.length,nearClearRemainingMin:nearEvents.length?Math.min(...nearEvents.map(e=>e.remaining)):null,nearClearChainMax:nearEvents.length?Math.max(...nearEvents.map(e=>e.filled)):0};
+      stats.attempts.push(rec);currentAttempt=null;return rec;
+    }
+
+    // Board snapshots intentionally exclude level/guard/theme: those are player preferences, not moves, and survive undo/load/new game.
+    function snapshot(){return{values:values.slice(),locked:locked.slice(),autoFilled:autoFilled.slice(),displaySets:cloneSets(displaySets),manualMemo:manualMemo.slice(),selected,memoMode,elapsed,completed};}
+    function restore(s,keepTime=false){runId++;hintSuggestion=null;const keep=elapsed;values=s.values.slice();locked=s.locked.slice();autoFilled=s.autoFilled.slice();displaySets=cloneSets(s.displaySets);manualMemo=s.manualMemo.slice();selected=s.selected;memoMode=s.memoMode;completed=s.completed;clearPlayed=completed;noteBtn.setAttribute('aria-pressed',String(memoMode));noteBtn.textContent=`メモ入力：${memoMode?'ON':'OFF'}`;render();restartTimer(keepTime?keep:s.elapsed);if(completed&&timerId)clearInterval(timerId);markReady();}
+    function pushUndo(){undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();}
+    function toggleGuard(){if(busy)return;guardEnabled=!guardEnabled;stats.guardToggles++;event('guard',{on:guardEnabled});savePrefs();updateControls();setStatus(guardEnabled?'連鎖ガード：ON':'連鎖ガード：OFF');autosaveActiveGame();}
+    function closeCandidateView(reason='toggle'){if(candidateVisibleSince==null)return null;const sec=Math.max(0,(performance.now()-candidateVisibleSince)/1000);candidateVisibleSince=null;stats.candidateViewEpisodes++;stats.candidateViewTotalSec+=sec;stats.candidateViewMaxSec=Math.max(stats.candidateViewMaxSec,sec);if(sec<=5)stats.candidateQuickPeeks++;event('candidate_view',{seconds:Number(sec.toFixed(1)),quick:sec<=5,reason});return sec;}
+    function toggleCandidates(){if(busy)return;let visibleSec=null;if(candidateVisible)visibleSec=closeCandidateView('toggle');candidateVisible=!candidateVisible;if(candidateVisible)candidateVisibleSince=performance.now();stats.candidateToggles++;event('candidate_visibility',{on:candidateVisible,...(visibleSec==null?{}:{visibleSec:Number(visibleSec.toFixed(1))})});savePrefs();for(let i=0;i<81;i++)drawCell(i);paintSelection();updateControls();setStatus(candidateVisible?'自動候補を表示します。':'自動候補を隠しました。自分で触ったメモ候補は残ります。');autosaveActiveGame();}
+    function toggleVolume(){const i=SOUND_ORDER.indexOf(soundVolume);soundVolume=SOUND_ORDER[(i+1)%SOUND_ORDER.length];ensureAudio();applySoundVolume();savePrefs();autosaveActiveGame();setStatus(`効果音：${SOUND_LABEL[soundVolume]}`);}
+    function toggleDark(){darkMode=!darkMode;applyTheme();savePrefs();updateControls();autosaveActiveGame();}
+    function toggleMemo(){if(busy)return;ensureAudio();memoMode=!memoMode;event('memo_mode',{on:memoMode});noteBtn.setAttribute('aria-pressed',String(memoMode));noteBtn.textContent=`メモ入力：${memoMode?'ON':'OFF'}`;setStatus(memoMode?'メモ入力モードです。':'通常入力モードです。');autosaveActiveGame();}
+    async function inputNumber(n){
+      if(completed||busy||selected<0||locked[selected])return;
+      // Re-entering the same number into an already user-confirmed cell is a true no-op.
+      if(!memoMode&&values[selected]===n)return;
+      keySound(memoMode);
+      if(memoMode){
+        if(values[selected])return;const legal=candidates(values,selected);if(!legal.includes(n)){setStatus(`${n} は候補にできません。`);return;}
+        noteMemoAction();pushUndo();stats.memoInputs++;manualMemo[selected]=true;if(displaySets[selected].has(n))displaySets[selected].delete(n);else displaySets[selected].add(n);event('memo',{attempt:stats.attemptCount,cell:selected,num:n});drawCell(selected);paintSelection();updateControls();autosaveActiveGame();return;
+      }
+      const thinkSec=takeThink(),observe=captureExplore(thinkSec),cell=selected,correct=n===solution[cell],wasWrongPath=wrongPathActive||boardHasWrongValue(),memoInputsBefore=currentAttempt?stats.memoInputs-currentAttempt.memoInputs:stats.memoInputs;
+      const matchedHint=!!(hintSuggestion&&hintSuggestion.idx===cell&&hintSuggestion.num===n),hintId=matchedHint?(hintSuggestion.id||null):null,hintLatencySec=matchedHint&&hintSuggestion.shownAt?Math.max(0,(performance.now()-hintSuggestion.shownAt)/1000):null;
+      pushUndo();stats.selfInputs++;if(!correct){stats.wrongInputs++;if(!wrongPathActive)stats.wrongPathEntries++;wrongPathActive=true;}
+      event('input',{attempt:stats.attemptCount,cell,num:n,think:Number(thinkSec.toFixed(1)),correct,guardOn:guardEnabled,hintSuggested:!!(hintSuggestion&&hintSuggestion.idx===cell),hintMatched:matchedHint,...(hintLatencySec==null?{}:{hintLatencySec:Number(hintLatencySec.toFixed(1))})});
+      values[cell]=n;displaySets[cell]=new Set();manualMemo[cell]=false;
+      if(matchedHint){stats.hintFollowedInputs++;stats.hintFollowLatencyTotalSec+=hintLatencySec||0;stats.hintFollowLatencyMaxSec=Math.max(stats.hintFollowLatencyMaxSec,hintLatencySec||0);hintSuggestion=null;}
+      if(wasWrongPath&&correct&&!boardHasWrongValue())recoverWrongPath('overwrite');
+      stats.moves.push({move:stats.selfInputs,attempt:stats.attemptCount,cell,num:n,thinkSec:Number(thinkSec.toFixed(1)),thinkSecAnalysis:Number(Math.min(thinkSec,THINK_ANALYSIS_CAP).toFixed(1)),correct,guardOn:guardEnabled,afterLoad:awaitingPostLoad,memoInputsBefore,observe,hintMatched:matchedHint,hintId,hintLatencySec:hintLatencySec==null?null:Number(hintLatencySec.toFixed(1)),chain:null,removed:null,finished:false,guardStopped:false});pendingMoveIndex=stats.moves.length-1;
+      pendingAutoResume={trigger:'input',thinkSec:Number(thinkSec.toFixed(3))};render();autosaveActiveGame(true);const myRun=runId;setBusy(true);setStatus('数字を入力しました。');await sleep(200);if(myRun!==runId)return;await runAutoCheck('自動チェックを始めます…','input',thinkSec);
+    }
+
+    function doUndo(){if(busy||!undoStack.length)return;const hadWrong=boardHasWrongValue(),s=undoStack.pop();stats.undos++;event('undo',{attempt:stats.attemptCount});restore(s,true);if(hadWrong&&!boardHasWrongValue())recoverWrongPath('undo');clearPlayed=false;setStatus('一手戻しました。');autosaveActiveGame();}
+    function check(){if(busy)return;let wrong=0,empty=0;stats.checks++;[...boardEl.children].forEach((cell,i)=>{cell.classList.remove('wrong');if(!values[i])empty++;else if(values[i]!==solution[i]&&!given[i]){cell.classList.add('wrong');wrong++;}});if(wrong){stats.wrongChecks++;stats.wrongCellsSeen+=wrong;}event('check',{attempt:stats.attemptCount,wrong,empty});if(wrong)setStatus(`違う数字が ${wrong} マスあります。`);else if(empty)setStatus(`ここまで正解です。残り ${empty} マス。`);else finish(true);markReady();if(!completed)autosaveActiveGame();}
+    function hint(){if(completed||busy||hintRemaining()<=0)return;ensureAudio();const blanks=range(81).filter(i=>!locked[i]&&values[i]===0);if(!blanks.length)return;let min=10,pool=[];for(const i of blanks){const len=candidates(values,i).length||9;if(len<min){min=len;pool=[i];}else if(len===min)pool.push(i);}const idx=pool[Math.floor(Math.random()*pool.length)],num=solution[idx],thinkSec=Math.max(0,(performance.now()-readyAt)/1000);stats.hintsUsed++;hintUsedThisAttempt++;hintSuggestion={idx,num,id:stats.hintsUsed,shownAt:performance.now()};selected=idx;event('hint',{attempt:stats.attemptCount,cell:idx,num,think:Number(thinkSec.toFixed(1)),mode:'suggestion',hintId:hintSuggestion.id});render();setStatus(`ヒント：光っているマスには ${num}。置くのはあなたです。残り ${hintRemaining()} 回。`);markReady();autosaveActiveGame();}
+    function doSave(){if(busy)return;saveState=snapshot();stats.saves++;event('save',{attempt:stats.attemptCount,elapsed});setStatus(`セーブしました（${formatTime(elapsed)}）。`);markReady();autosaveActiveGame();}
+    function doLoad(){if(busy)return;if(!saveState){setStatus('まだセーブデータがありません。');return;}const hadWrong=boardHasWrongValue();stats.loads++;event('load',{attempt:stats.attemptCount,elapsed});undoStack=[];restore(saveState,false);if(hadWrong&&!boardHasWrongValue())recoverWrongPath('load');awaitingPostLoad=true;setStatus(`セーブ地点をロードしました（${formatTime(elapsed)}）。`);autosaveActiveGame();}
+    function doReset(){if(busy||!startState)return;
+      const hadWrong=boardHasWrongValue();
+      const attemptRec=finalizeAttempt('reset');
+      stats.resets++;event('reset',{attempt:stats.attemptCount,remaining:values.filter(v=>v===0).length,maxChain:attemptRec?.maxChain||0});
+      if(hadWrong)recoverWrongPath('reset');
+      undoStack=[];saveState=null;restore(startState,false);clearPlayed=false;awaitingPostLoad=false;pendingMoveIndex=-1;wrongPathActive=false;wrongPathPeak=0;stats.currentDryStreak=0;hintUsedThisAttempt=0;stats.attemptCount++;resultEl.classList.add('hidden');beginAttempt();setStatus(`ゲーム開始時点から再挑戦します（${stats.attemptCount}回目）。`);autosaveActiveGame();}
+
+    const families={
+      phantomNear:{rare:true,names:['夢の途中','燃え残った世界線','あと三マスの幻','ほぼ正解だった幻'],desc:'間違った世界線の大連鎖が、CLEARまであと1〜3マスというところまで迫りました。'},
+      phantomOutshine:{rare:true,names:['偽物のほうが派手','幻こそ最大','盛大に間違えました'],desc:'正解ルートよりも、間違った世界線のほうが派手な連鎖を見せました。'},
+      phantomRepeat:{rare:true,names:['世界線渡り','異世界周回','帰還者','また別の世界線へ'],desc:'何度も誤った世界線へ入り、そのたびに戻って最後まで生還しました。'},
+      phantom:{rare:true,names:['幻の大連鎖','偽りの着火','そこじゃなかった'],desc:'間違った世界線で大きく燃え上がったあと、そこから帰還してクリアしました。'},
+      oneShot:{rare:true,names:['ホールインワン','一手開城','開幕即終了','初手で決着','最初の一手が最後の一手'],desc:'最初に置いた一手だけで残りの盤面がすべて連鎖し、そのままCLEARしました。'},
+      openingRush:{rare:true,names:['開幕速攻','序盤決着','三手以内で決着','開始早々','短期決戦'],desc:'自力2〜3手のうちに盤面を決着まで運びました。試合は立ち上がりのまま終わりました。'},
+      openingInstant:{rare:true,names:['押したら終わった','難問とは','開幕事故'],desc:'「むずかしい」の最初の確定入力が、そのまま大連鎖CLEARになりました。しかもほぼ即決です。'},
+      openingFinish:{rare:true,names:['最初の一手が最後の一手','一手で崩した者','初手で決着'],desc:'「むずかしい」で最初に置いた一手が大雪崩を起こし、そのままCLEARしました。'},
+      openingBlast:{rare:true,names:['開幕雪崩','初手着火','一手目から全開','開幕大崩壊'],desc:'「むずかしい」の最初の一手から、いきなり大きな連鎖を引き起こしました。'},
+      hibernation:{rare:true,names:['一晩寝かせました','盤面と一夜を共にした者','熟成','大長考、夜を越える'],desc:'一手までの時間が30分を越えました。熟考か、寄り道か、寝落ちか。それも一局の記録です。'},
+      nearMiss:{rare:true,names:['あと一歩！','燃え残り数マス','鎮火、早すぎます','惜しい着火'],desc:'大きな連鎖があとわずかのところで止まり、それでも再挑戦してクリアしました。'},
+      retry:{rare:false,names:['TAKE 2','再挑戦者','仕切り直してヨシ！','もう一度、最初から'],desc:'いったん盤面を最初に戻し、新しい試行で最後まで解き切りました。'},
+      verify:{rare:true,names:['確認ヨシ！','指差し確認','念には念を'],desc:'答え合わせを何度も使い、盤面の安全を確認しながら完走しました。'},
+      allHints:{rare:true,names:['神々に愛されし者','三度の天啓','神託フルコース'],desc:'三つのヒントをすべて使い切って、最後まで盤面をつなぎました。'},
+      worldline:{rare:true,names:['世界線修正者','正史への帰還','ロードからの逆襲'],desc:'ロードで戻ったあと、選び直した一手から盤面を大きく動かしました。'},
+      hintIgnite:{rare:true,names:['一撃点火','天啓からの雪崩','その一手で全部動いた'],desc:'ヒントで示された一手を本人が置き、そこから大きな連鎖を呼び込みました。'},
+      deepBreak:{rare:false,names:['沈黙を破る一手','熟考の一撃','長考、実る'],desc:'長い思考のあとに、大きな連鎖を引き起こしました。'},
+      rootStruggle:{rare:false,names:['盤面との根比べ','呻吟する職人','それでも考える者','長期戦を制す'],desc:'何度も長考し、すぐには報われない時間を粘って最後まで突破しました。'},
+      crusher:{rare:true,names:['盤面クラッシャー','雪崩を呼ぶ者','連鎖爆破班'],desc:'盤面の大部分を占める級の大連鎖で、豪快に崩しました。'},
+      timeFreeze:{rare:true,names:['時の止まった盤面','二分の沈黙','盤面とにらめっこ'],desc:'一手を置くまでに二分以上。盤面との長いにらみ合いを制しました。'},
+      clearRush:{rare:false,names:['雪崩式決着','怒涛のフィニッシュ','最後は一瞬'],desc:'少ない自力入力から、最後の一手が盤面の大部分を一気にCLEARまで運びました。'},
+      dryWall:{rare:false,names:['壁を越えた人','沈黙の向こう側','粘って突破'],desc:'何手も連鎖が起きない時間を耐え、最後まで盤面を切り開きました。'},
+      rewind:{rare:false,names:['時を戻す者','巻き戻しの達人','まだやり直せる'],desc:'一手戻しを何度も使いながら、正しい道筋を探り当てました。'},
+      saver:{rare:false,names:['慎重なる探検家','セーブポイントの住人','石橋を叩く者'],desc:'こまめに足場を残しながら、慎重に盤面を攻略しました。'},
+      grind:{rare:false,names:['コツコツ職人','一マス入魂','静かなる攻略者'],desc:'派手な一撃だけに頼らず、地道な自力入力を重ねて盤面を削りました。'},
+      philosopher:{rare:false,names:['盤面と語る者','考え抜く人','粘考派'],desc:'何度も立ち止まって考え、そのたびに次の一手を探しました。'},
+      rhythm:{rare:false,names:['リズムマスター','数字の早撃ち','流れるような解法','テンポ攻略'],desc:'迷いの少ない入力をテンポよく重ね、盤面を進めました。'},
+      smallChain:{rare:false,names:['小連鎖マエストロ','連鎖の小波','刻みの達人','連鎖奏者'],desc:'小さな連鎖を何度も起こし、リズムよく盤面をほどきました。'},
+      flawless:{rare:false,names:['一発完走','迷いなき完走','一本道'],desc:'ヒントもロードも巻き戻しも使わず、そのまま完走しました。'},
+      guardless:{rare:false,names:['命綱なし','ノーガード','綱渡りの生還者'],desc:'連鎖ガードを外した状態でも手を進め、最後まで生還しました。'},
+      scanner:{rare:false,names:['盤面パトロール','全数字総点検','確定数字監査室','現場検証中'],desc:'確定済みの数字を何種類も見比べながら、次の一手を探しました。'},
+      stillness:{rare:false,names:['盤面凝視','動かざる観測者','無言の長考','見ていた時間のほうが長い'],desc:'長い思考時間のあいだ、タップを増やさず盤面をじっと見つめていました。'},
+      activeThink:{rare:false,names:['歩く思考','盤面を巡る者','考えながら見回る','思考は足で稼ぐ'],desc:'長考中もセルを切り替え、数字を見比べながら考え続けました。'},
+      memoist:{rare:false,names:['欄外計算班','メモ職人','小さい数字の住人','書いてから考える派'],desc:'メモを使って候補を整理しながら、盤面を組み立てました。'},
+      default:{rare:false,names:['盤面解放者','数字の旅人','今日も一局'],desc:'考えて、試して、連鎖をつないで、盤面を最後まで解放しました。'}
+    };
+    const TITLE_GROUP={
+      phantomNear:'phantom',phantomOutshine:'phantom',phantomRepeat:'phantom',phantom:'phantom',
+      oneShot:'opening',openingRush:'opening',openingInstant:'opening',openingFinish:'opening',openingBlast:'opening',
+      hibernation:'time',timeFreeze:'time',deepBreak:'thinking',rootStruggle:'thinking',philosopher:'thinking',stillness:'thinking',activeThink:'thinking',scanner:'inspection',memoist:'memo',
+      nearMiss:'recovery',retry:'recovery',rewind:'recovery',worldline:'recovery',
+      verify:'support',allHints:'support',hintIgnite:'support',saver:'support',
+      crusher:'chain',clearRush:'chain',smallChain:'chain',dryWall:'grind',grind:'grind',rhythm:'tempo',flawless:'clean',guardless:'risk',default:'default'
+    };
+    function recentTitleNames(){const h=safeRead(TITLE_KEY,[]),a=[];for(const x of h.slice(-8)){if(x?.name)a.push(x.name);if(x?.secondaryName)a.push(x.secondaryName);}return a;}
+    function pickName(family){const recentNames=recentTitleNames(),pool=families[family].names.filter(n=>!recentNames.includes(n)),arr=pool.length?pool:families[family].names;return arr[Math.floor(Math.random()*arr.length)];}
+    function observationShape(){
+      const moves=stats.moves||[],longMoves=moves.filter(m=>(m.thinkSecAnalysis??m.thinkSec??0)>=LONG_THINK),
+        active=longMoves.filter(m=>((m.observe?.selectionChanges||0)>=3||(m.observe?.confirmedTaps||0)>=2||(m.observe?.memoActions||0)>=2)),
+        quiet=longMoves.filter(m=>((m.observe?.selectionChanges||0)<=1&&(m.observe?.confirmedTaps||0)===0&&(m.observe?.memoActions||0)===0)),
+        assist=longMoves.filter(m=>(m.observe?.confirmedTaps||0)>0),
+        scanBursts=moves.filter(m=>(m.observe?.distinctConfirmedDigits||0)>=3),
+        maxMemo=moves.reduce((a,m)=>Math.max(a,m.observe?.memoActions||0),0),
+        maxActive=active.reduce((a,m)=>Math.max(a,m.thinkSecAnalysis??m.thinkSec??0),0),
+        maxQuiet=quiet.reduce((a,m)=>Math.max(a,m.thinkSecAnalysis??m.thinkSec??0),0);
+      return{activeThinkMoves:active.length,quietThinkMoves:quiet.length,assistThinkMoves:assist.length,scanBurstMoves:scanBursts.length,maxMemoActionsBeforeInput:maxMemo,maxActiveThinkSec:maxActive,maxQuietThinkSec:maxQuiet};
+    }
+    function rankTitleCandidates(){const s=stats,q=s.selfInputs?s.quickInputs/s.selfInputs:0,zero=s.selfInputs?s.zeroChainMoves/s.selfInputs:0,posAvg=s.positiveInputChains?s.positiveInputChainTotal/s.positiveInputChains:0,clearRatio=s.startEmpties?s.clearChain/s.startEmpties:0,crusherThreshold=Math.max(32,Math.ceil(s.startEmpties*.75)),c=[],history=safeRead(TITLE_KEY,[]),recentFamilies=history.slice(-5).flatMap(x=>[x.family,x.secondaryFamily].filter(Boolean)),obs=observationShape(),distinctConfirmed=s.confirmedDigitsSeen.slice(1).filter(Boolean).length;
+      const add=(ok,family,score)=>{if(!ok)return;const repeated=recentFamilies.filter(x=>x===family).length,penalty=families[family].rare?0:repeated*2;c.push({family,group:TITLE_GROUP[family]||family,score:score-penalty});};
+      // Rare titles represent observed or naturally reachable play patterns, never arbitrary coincidences.
+      add(s.phantomNearClearCount>=1&&s.phantomNearClearChainMax>=8,'phantomNear',172+s.phantomNearClearChainMax/2);
+      add(s.phantomChainMax>=10&&s.clearChain>0&&s.phantomChainMax>s.clearChain,'phantomOutshine',168+(s.phantomChainMax-s.clearChain)/2);
+      add(s.phantomChainMax>=6&&(s.wrongPathRecoveries>=2||s.wrongPathEntries>=2||s.wrongInputs>=3),'phantomRepeat',164+s.wrongPathRecoveries+s.wrongInputs/2);
+      add(s.phantomChainMax>=10,'phantom',160+s.phantomChainMax/2);
+      add(s.selfInputs===1&&s.clearChain>=1,'oneShot',180+s.clearChain/3);
+      add(s.selfInputs>=2&&s.selfInputs<=3&&s.clearChain>=1,'openingRush',151+s.clearChain/5);
+      add(s.difficulty==='hard'&&s.openingFinished&&s.openingCorrect&&s.openingChain>=30&&s.openingThinkSec<=5,'openingInstant',158+s.openingChain/3);
+      add(s.difficulty==='hard'&&s.openingFinished&&s.openingCorrect&&s.openingChain>=30,'openingFinish',156+s.openingChain/3);
+      add(s.difficulty==='hard'&&s.openingCorrect&&s.openingChain>=Math.max(15,Math.ceil(s.startEmpties*.35)),'openingBlast',152+s.openingChain/3);
+      add(s.maxThinkSec>=1800,'hibernation',150+Math.min(s.maxThinkSec/600,20));
+      add(s.resets>=1&&s.nearClearCount>=1&&s.nearClearRemainingMin<=3&&s.nearClearChainMax>=8,'nearMiss',141+s.nearClearChainMax/2);
+      add(s.checks>=5,'verify',136+Math.min(s.checks,10));
+      add(s.attempts.some(a=>a.hintsUsed>=3),'allHints',134);
+      add(s.postLoadFirstChainMax>=8,'worldline',132+s.postLoadFirstChainMax/2);
+      add(s.hintChainMax>=8,'hintIgnite',130+s.hintChainMax/2);
+      add(s.maxThinkSec>=30&&s.longThinkChainMax>=10,'deepBreak',128+s.longThinkChainMax/2);
+      add(obs.activeThinkMoves>=2&&s.maxThinkSec>=30,'activeThink',127+obs.activeThinkMoves+Math.min(obs.maxActiveThinkSec,120)/60);
+      add((s.confirmedCellTaps>=5&&distinctConfirmed>=4)||s.maxDistinctConfirmedDigitsBeforeInput>=4,'scanner',126+Math.min(s.confirmedCellTaps,15)/3+Math.min(distinctConfirmed,9)/3);
+      add(obs.quietThinkMoves>=1&&obs.maxQuietThinkSec>=45,'stillness',126+Math.min(obs.maxQuietThinkSec,300)/90);
+      add(s.memoInputs>=6,'memoist',125+Math.min(s.memoInputs,20)/5);
+      add(s.longThinkCount>=4&&s.longThinkZeroCount>=3&&s.longThinkChainMax<10&&s.maxDryStreak>=4,'rootStruggle',127+s.longThinkCount/2+s.maxDryStreak/3);
+      add(s.maxChain>=crusherThreshold,'crusher',124+s.maxChain/3);
+      add(s.maxThinkSec>=120&&s.longThinkChainMax<10,'timeFreeze',122+s.maxThinkSec/60);
+      // Clear rush is truly a fast avalanche: few manual moves, huge final share, no prolonged thinking.
+      add(s.selfInputs<=3&&s.clearChain>=20&&clearRatio>=.82&&s.maxThinkSec<18,'clearRush',119+clearRatio*8);
+      add(s.resets>=1,'retry',112+Math.min(s.resets,3));
+      add(s.maxDryStreak>=7&&s.selfInputs>=10,'dryWall',110+s.maxDryStreak/2);
+      add(s.undos>=5,'rewind',107+s.undos);
+      add(s.saves>=8,'saver',105+Math.min(s.saves,15)/3);
+      add(s.longThinkCount>=4&&s.totalThinkSec>=90,'philosopher',103+s.longThinkCount/2);
+      add(s.selfInputs>=10&&zero>=.5&&clearRatio<.65,'grind',102+s.selfInputs/4);
+      add(s.chainEvents>=4&&s.maxChain<=20&&posAvg<=8,'smallChain',101+s.chainEvents/2);
+      add(s.selfInputs>=7&&q>=.65&&s.maxThinkSec<15,'rhythm',100+q*5);
+      add(s.guardOffMoves>=10,'guardless',96+Math.min(s.guardOffMoves,20)/5);
+      add(s.hintsUsed===0&&s.undos===0&&s.loads===0&&s.wrongChecks===0&&s.resets===0,'flawless',93);
+      add(s.saves>=5,'saver',89+s.saves/4);
+      add(true,'default',40);
+      c.sort((a,b)=>b.score-a.score);return c;
+    }
+    function titleFromCandidate(pick){const name=pickName(pick.family);return{family:pick.family,name,desc:families[pick.family].desc,rare:families[pick.family].rare,group:pick.group,score:Number(pick.score.toFixed(2))};}
+    function fallbackSecondary(primary){
+      const s=stats;
+      if(s.selfInputs===1)return{family:'factOpening',name:`初手 ${s.clearChain}連鎖`,desc:`最初の一手から ${s.clearChain} マスが自動確定し、そのまま盤面を閉じました。`,rare:false,group:'fact'};
+      if(s.selfInputs>=2&&s.selfInputs<=3)return{family:'factOpeningRush',name:`開幕 ${s.selfInputs}手決着`,desc:`自力 ${s.selfInputs} 手で決着。序盤のうちに盤面がすべて動きました。`,rare:false,group:'fact'};
+      if(s.clearChain>=20)return{family:'factFinish',name:`終盤 ${s.clearChain}連鎖`,desc:`最後の着火から ${s.clearChain} マスが確定し、そのまま盤面を閉じました。`,rare:false,group:'fact'};
+      if(s.maxDryStreak>=4)return{family:'factDry',name:`無連鎖 ${s.maxDryStreak}手を突破`,desc:'連鎖が止まった時間も、自力入力で盤面を前へ進めました。',rare:false,group:'fact'};
+      if(s.selfInputs>=6)return{family:'factHands',name:`自力 ${s.selfInputs}手`,desc:'自動連鎖だけに任せず、手数を重ねて盤面を解放しました。',rare:false,group:'fact'};
+      return{family:'factTime',name:`${formatTime(elapsed)}で決着`,desc:'一局の流れそのものを、小見出しとして記録しました。',rare:false,group:'fact'};
+    }
+    const REPORTERS={
+      tamura:{id:'tamura',name:'田村健一',role:'本紙・ベテラン記者',desk:'運動部',tone:'veteran'},
+      sakura:{id:'sakura',name:'佐倉みなみ',role:'本紙・新人記者',desk:'運動部',tone:'rookie'},
+      takanashi:{id:'takanashi',name:'高梨 剛',role:'本紙・データ担当',desk:'データ班',tone:'data'},
+      hiiragi:{id:'hiiragi',name:'柊木 遥',role:'特別寄稿・小説家',desk:'ゲストライター',tone:'literary'},
+      morishita:{id:'morishita',name:'森下 誠',role:'本紙・社会部記者',desk:'社会部',tone:'straight'}
+    };
+    function articleHistory(){const h=safeRead(ARTICLE_KEY,[]);return Array.isArray(h)?h:[];}
+    function recentArticleIds(){const out=[];for(const x of articleHistory().slice(-12)){if(x?.leadId)out.push(x.leadId);if(x?.eyeId)out.push(x.eyeId);}return out;}
+    function pickArticleVariant(group,variants){const recent=recentArticleIds(),fresh=variants.filter(v=>!recent.includes(v.id)),pool=fresh.length?fresh:variants,v=pool[Math.floor(Math.random()*pool.length)];return{...v,group};}
+    function chooseReporter(primary,secondary){
+      const s=stats,obs=observationShape(),scores={tamura:15,sakura:22,takanashi:18,hiiragi:7,morishita:0},fam=primary.family;
+      if(['phantomNear','phantomOutshine','phantomRepeat','phantom'].includes(fam)){
+        scores.sakura+=12;scores.hiiragi+=26;scores.tamura+=2;
+        if(s.phantomNearClearCount>=2||s.wrongPathRecoveries>=2)scores.hiiragi+=12;
+      }
+      if(['oneShot','openingRush','openingInstant','openingFinish','openingBlast','crusher','clearRush'].includes(fam)){scores.sakura+=15;scores.tamura+=4;scores.takanashi+=2;}
+      if(['deepBreak','rootStruggle','dryWall','philosopher','timeFreeze','stillness'].includes(fam)){scores.tamura+=10;scores.hiiragi+=7;scores.takanashi+=5;}
+      if(['scanner','activeThink','memoist'].includes(fam)||s.confirmedCellTaps>=5||obs.scanBurstMoves){scores.takanashi+=17;scores.tamura+=2;}
+      if(['rewind','retry','nearMiss','worldline'].includes(fam)){scores.tamura+=4;scores.sakura+=9;scores.hiiragi+=3;}
+      if(s.maxThinkSec>=600||s.veryLongPauseCount){scores.morishita+=55;scores.hiiragi+=8;}
+      if(s.maxThinkSec>=1800){scores.morishita+=30;}
+      // Newsroom labor rule: recent bylines sharply reduce another assignment. Nobody should own the paper.
+      const recent=articleHistory().slice(-5).map(x=>x.reporterId).filter(Boolean),last=recent[recent.length-1],last2=recent.slice(-2);
+      for(const id of Object.keys(scores)){
+        const count=recent.filter(x=>x===id).length;
+        if(last===id)scores[id]*=.32;
+        if(count>=2)scores[id]*=Math.pow(.58,count-1);
+        if(last2.length===2&&last2.every(x=>x===id))scores[id]*=.12;
+      }
+      // Extra paid leave for the veteran after a heavy run of columns.
+      if(recent.filter(x=>x==='tamura').length>=3)scores.tamura*=.18;
+      const entries=Object.entries(scores).filter(([,v])=>v>0),total=entries.reduce((a,[,v])=>a+v,0);let r=Math.random()*total;
+      for(const [id,v] of entries){r-=v;if(r<=0)return REPORTERS[id];}
+      return REPORTERS.sakura;
+    }
+    function makeNewsLead(primary,secondary){const s=stats,d=derived(),p=s.phantomNearClearChainMax||s.phantomChainMax,r=s.phantomNearClearRemainingMin,clear=s.clearChain,max=s.maxChain,think=Math.round(s.maxThinkSec),longChain=s.longThinkChainMax;
+      let group='general',v=[];
+      if(s.phantomNearClearCount){group='phantomNear';v=[
+        {id:'pn-baseball-1',style:'野球',text:`勝利目前でまさかの失速。誤着火は最大${p}連鎖、残り${r}マスでサヨナラならず。`},
+        {id:'pn-shogi-1',style:'将棋',text:`勝勢と思われた局面から暗転。幻の${p}連鎖は残り${r}マスまで迫り、そこで読み筋が崩れた。`},
+        {id:'pn-horse-1',style:'競馬',text:`ゴール目前、残り${r}マスで失速。幻の${p}連鎖はわずかに届かなかった。`},
+        {id:'pn-box-1',style:'格闘技',text:`${p}連鎖の猛攻も決着ならず。残り${r}マス、盤面はロープ際で踏みとどまった。`},
+        {id:'pn-general-1',style:'スポーツ紙',text:`最大${p}連鎖で残り${r}マスまで迫った幻の世界線。勝負は、そこで終わらなかった。`}
+      ];}
+      else if(s.selfInputs===1){group='oneShot';v=[
+        {id:'os-golf-1',style:'ゴルフ',text:`ホールインワン！ 最初の一手から${clear}マスが一気に確定し、そのまま決着。`},
+        {id:'os-baseball-1',style:'野球',text:`初球で試合を決めた。最初の一打から${clear}マスが確定、後続の出番はなかった。`},
+        {id:'os-shogi-1',style:'将棋',text:`初手がそのまま決め手。${clear}マスが一気に確定し、わずか一手で終局。`},
+        {id:'os-box-1',style:'格闘技',text:`開始のゴング直後に${clear}連鎖。盤面は立てず、そのまま決着。`},
+        {id:'os-sumo-1',style:'相撲',text:`立ち合い一手で${clear}マスを押し込む。そのまま勝負あり。`},
+        {id:'os-general-1',style:'スポーツ紙',text:`プレーボール直後に試合終了。最初の一手から${clear}マスが確定した。`}
+      ];}
+      else if(s.selfInputs>=2&&s.selfInputs<=3){group='openingRush';v=[
+        {id:'or-baseball-1',style:'野球',text:`開幕から畳みかけた。自力${s.selfInputs}手、最後は${clear}連鎖で早々にゲームセット。`},
+        {id:'or-shogi-1',style:'将棋',text:`序盤${s.selfInputs}手で勝負あり。最後の着火から${clear}マスが確定し、そのまま終局。`},
+        {id:'or-box-1',style:'格闘技',text:`開始早々の速攻。自力${s.selfInputs}手で${clear}連鎖を呼び込み、短期決戦を制した。`},
+        {id:'or-sumo-1',style:'相撲',text:`立ち合いから一気。${s.selfInputs}手で形を作り、${clear}連鎖で早々に勝負を決めた。`},
+        {id:'or-general-1',style:'スポーツ紙',text:`開始早々に決着。自力${s.selfInputs}手、最後は${clear}マスが一気に確定した。`}
+      ];}
+      else if(s.openingChain>=15){group='opening';const tail=s.openingFinished?'そのまま決着。':'序盤から試合を大きく動かした。';v=[
+        {id:'op-baseball-1',style:'野球',text:`初球を完璧に捉えた。初手から${s.openingChain}マスが確定、${s.openingFinished?'そのままサヨナラ。':'一気に主導権を握る。'}`},
+        {id:'op-shogi-1',style:'将棋',text:`初手から${s.openingChain}マスが確定。${s.openingFinished?'そのまま投了へ。':'早くも局面は大きく傾いた。'}`},
+        {id:'op-box-1',style:'格闘技',text:`開始のゴング直後に${s.openingChain}連鎖。${s.openingFinished?'盤面は立てず、そのまま決着。':'いきなりダウンを奪った。'}`},
+        {id:'op-sumo-1',style:'相撲',text:`立ち合い一手で${s.openingChain}マスを押し込む。${s.openingFinished?'そのまま勝負あり。':'盤面を一気に土俵際へ。'}`},
+        {id:'op-general-1',style:'スポーツ紙',text:`初手から${s.openingChain}連鎖。${tail}`}
+      ];}
+      else if(clear>=20){group='finish';v=[
+        {id:'fi-baseball-1',style:'野球',text:`最後の一打で${clear}マスが確定、鮮やかなサヨナラ決着。`},
+        {id:'fi-shogi-1',style:'将棋',text:`最後の一手から${clear}マスが確定、そのまま投了へ。`},
+        {id:'fi-horse-1',style:'競馬',text:`終盤一気の末脚。最後の着火から${clear}マスをまとめて差し切った。`},
+        {id:'fi-sumo-1',style:'相撲',text:`最後の一手で${clear}マスを押し切り、そのまま勝負あり。`},
+        {id:'fi-box-1',style:'格闘技',text:`最後の一撃で${clear}マスが崩落。盤面、立てず。`},
+        {id:'fi-soccer-1',style:'サッカー',text:`終盤の一手から${clear}マスが連動。一気に試合を決めた。`},
+        {id:'fi-general-1',style:'スポーツ紙',text:`最終盤に飛び出した会心の一手。${clear}マスを一気に仕留め、盤面を閉じた。`},
+        {id:'fi-general-2',style:'スポーツ紙',text:`勝負を決めたのは最後の一手。残る${clear}マスが雪崩を打って確定した。`}
+      ];}
+      else if(think>=30&&longChain>=8){group='longbreak';v=[
+        {id:'lb-shogi-1',style:'将棋',text:`${think}秒の長考。勝負手から${longChain}連鎖を呼び込み、局面の流れを変えた。`},
+        {id:'lb-baseball-1',style:'野球',text:`ベンチが見守った${think}秒。狙い澄ました一打が${longChain}連鎖を呼んだ。`},
+        {id:'lb-box-1',style:'格闘技',text:`${think}秒のにらみ合いから一閃。${longChain}連鎖で主導権を奪った。`},
+        {id:'lb-general-1',style:'スポーツ紙',text:`沈黙は${think}秒。そこから放った一手が${longChain}連鎖を引き出した。`}
+      ];}
+      else if(s.maxDryStreak>=6){group='grind';v=[
+        {id:'gr-sumo-1',style:'相撲',text:`連鎖なし${s.maxDryStreak}手を粘り腰でしのぎ、最後は${clear}連鎖で押し切った。`},
+        {id:'gr-shogi-1',style:'将棋',text:`${s.maxDryStreak}手にわたり局面は動かず。それでも手をつなぎ、終盤${clear}連鎖で投了へ。`},
+        {id:'gr-general-1',style:'スポーツ紙',text:`無連鎖${s.maxDryStreak}手の我慢比べ。火種をつなぎ、終盤に${clear}連鎖を呼び込んだ。`}
+      ];}
+      else if(s.phantomChainMax>=10){group='phantom';v=[
+        {id:'ph-baseball-1',style:'野球',text:`痛恨の一打がまさかの${s.phantomChainMax}連鎖。派手に飛んだが、行き先が違った。`},
+        {id:'ph-shogi-1',style:'将棋',text:`勝負手は${s.phantomChainMax}連鎖を生んだ。しかし、その読み筋は別の世界線だった。`},
+        {id:'ph-general-1',style:'スポーツ紙',text:`誤った一手から${s.phantomChainMax}連鎖。盤面は途中まで、実に協力的だった。`}
+      ];}
+      else {group='general';v=[
+        {id:'ge-general-1',style:'スポーツ紙',text:`自力${s.selfInputs}手で攻略。連鎖命中${Math.round(d.hitRate*100)}%、最大${max}連鎖で決着した。`},
+        {id:'ge-shogi-1',style:'将棋',text:`自力${s.selfInputs}手を積み重ね、最大${max}連鎖。最後まで読みをつないだ。`},
+        {id:'ge-baseball-1',style:'野球',text:`自力${s.selfInputs}打席、最大${max}連鎖。要所を取り切ってゲームセット。`}
+      ];}
+      return pickArticleVariant(group,v);
+    }
+    function makeReporterEye(reporter,primary,secondary){const s=stats,d=derived(),obs=observationShape(),distinct=s.confirmedDigitsSeen.slice(1).filter(Boolean).length,p=s.phantomNearClearChainMax||s.phantomChainMax,r=s.phantomNearClearRemainingMin,think=Math.round(s.maxThinkSec),variants=[];
+      const push=(id,text)=>variants.push({id:`${reporter.id}-${id}`,text});
+      if(reporter.id==='tamura'){
+        if(primary.family==='hintIgnite'&&s.hintFollowedInputs){const hl=Math.round(s.hintFollowLatencyMaxSec||0);push('hi1',`ヒントが示したのは場所と数字まで。${hl}秒後、実際に置いたのは本人だ。そこから${s.hintChainMax}連鎖。引き金まで機械に任せなかった点は記しておきたい。`);push('hi2',`助言は受けた。しかし盤面を動かした最後の操作は本人の一手だった。${s.hintChainMax}連鎖という結果とは分けて見たい。`);}
+        else if(s.phantomNearClearCount){push('pn1',`残り${r}マスまで迫った数字だけを見れば惜敗だ。しかし見るべきは、誤った前提のまま${p}連鎖まで伸びたこと。勝負の怖さは、派手な数字の裏にある。`);push('pn2',`大連鎖の勢いに目を奪われるが、勝負どころはその前だ。一本の読み違いを抱えたまま終盤まで傷が見えなかった。`);}
+        else if(s.selfInputs===1){push('op1',`初手の${s.clearChain}連鎖は鮮烈。ただ、偶然の一撃ではない。最初の一手を選ぶまでに使った${Math.round(s.openingThinkSec)}秒こそ、この局の中身だ。`);push('op2',`一手で終わる局ほど、最初の一手が重い。盤面は開始直後に崩れたが、勝負は置く前から始まっていた。`);}else if(s.selfInputs<=3){push('or1',`自力${s.selfInputs}手で決着。立ち上がりで流れをつかみ切った短期戦だった。`);}
+        else if(think>=30){push('th1',`${think}秒の長考をどう見るか。結果だけなら${s.longThinkChainMax||s.clearChain}連鎖だが、その間に盤面を見回した形跡がある。勝負手は突然生まれたわけではない。`);push('th2',`派手なのは連鎖だが、私はその前の沈黙を買いたい。待てることも、盤面では立派な技術だ。`);}
+        else if(s.maxDryStreak>=5){push('dry1',`連鎖が来ない${s.maxDryStreak}手をどう耐えるか。そこで手を雑にしなかったことが、最後の着火につながった。`);}
+        else {push('gen1',`最大${s.maxChain}連鎖は見栄えがする。ただ、この局は自力${s.selfInputs}手の積み重ねがあってこその決着だった。`);push('gen2',`数字は最後に一気に動いたが、流れを作ったのはその前の地味な手だ。そこを見落としてはいけない。`);}
+      }else if(reporter.id==='sakura'){
+        if(primary.family==='hintIgnite'&&s.hintFollowedInputs){const hl=Math.round(s.hintFollowLatencyMaxSec||0);push('hi1',`ヒントが出てから${hl}秒。最後は自分で数字を置いて、そこから${s.hintChainMax}連鎖でした。押した瞬間はちょっと気持ちよかったです。`);}
+        else if(s.phantomNearClearCount){push('pn1',`正直、${p}連鎖が始まった瞬間は「決まった！」と思いました。残り${r}マスで止まったとき、私も盤面を二度見しました。`);push('pn2',`あと${r}マス。本当にあと${r}マスでした。それだけに、世界線が違っていたと分かった瞬間の衝撃は大きかったです。`);}
+        else if(s.selfInputs===1){push('op1',`まだ取材メモを開き切っていませんでした。最初の一手で${s.clearChain}連鎖。こういう試合は記者の準備を待ってくれません。`);push('op2',`一手入れたら全部終わりました。取材する側としては、もう少し試合をしてほしかったです。`);}else if(s.selfInputs<=3){push('or1',`気づいたら終わっていました。自力${s.selfInputs}手。まだ「ここからですね」と書こうとしていたところです。`);}
+        else if(s.maxChain>=35){push('cr1',`${s.maxChain}連鎖が始まってからは、もう画面を見ているだけでした。途中から数えるのを諦めたのは内緒です。`);}
+        else if(think>=30){push('th1',`${think}秒、かなり長かったです。でも最後に数字が走り出した瞬間、「考えてたんだ！」ってちょっと嬉しくなりました。`);push('th2',`長い沈黙のあとに盤面が動くと、取材している側まで報われた気持ちになります。`);}
+        else {push('gen1',`派手な一手もありましたが、テンポよく数字が入っていく時間も気持ちよかったです。こういう局、見ていて好きです。`);push('gen2',`最後まで見届けました。数字が全員きれいに席へ戻ると、なぜかこちらまで安心します。`);}
+      }else if(reporter.id==='takanashi'){
+        if(primary.family==='hintIgnite'&&s.hintFollowedInputs){const avg=s.hintFollowedInputs?s.hintFollowLatencyTotalSec/s.hintFollowedInputs:0;push('hi1',`ヒント採用入力は${s.hintFollowedInputs}回。提示から入力まで平均${avg.toFixed(1)}秒、最大連鎖は${s.hintChainMax}。ヒント自体による自動入力は0回。`);}
+        else if(s.candidateQuickPeeks>0&&s.candidateViewEpisodes===s.candidateQuickPeeks){push('peek1',`候補表示は短時間参照${s.candidateQuickPeeks}回、合計${s.candidateViewTotalSec.toFixed(1)}秒。用途までは判定できないが、常時表示ではなかった。`);}
+        else if(s.selfInputs===1){push('op1',`自力入力は1手、自動確定は${s.clearChain}マス。手動比率は${(d.manualWorkRatio*100).toFixed(1)}%。数字だけ見ても、明確な一手決着だ。`);}
+        else if(s.selfInputs<=3){push('or1',`自力${s.selfInputs}手で決着し、自動確定は計${s.totalAuto}マス。短期戦として非常に高い自動展開率を記録した。`);}
+        else if(s.confirmedCellTaps>=4||distinct>=4){push('scan1',`確定数字の確認は${s.confirmedCellTaps}回、見た数字は${distinct}種類。入力だけを見るより、盤面をどう検索したかのほうが本局の特徴をよく表している。`);push('scan2',`1手あたりの盤面タップは平均${d.tapToInputRatio.toFixed(1)}回。数字を置く前の探索量が、通常より目立った。`);}
+        else if(s.phantomChainMax>=10){push('ph1',`誤世界線の最大連鎖は${s.phantomChainMax}。正解連鎖${s.clearChain}との比較まで含めると、「間違いの説得力」が数字で確認できる。`);}
+        else if(think>=30){push('th1',`最長思考${think}秒、長考${s.longThinkCount}回。時間の総量より、どの長考が連鎖に変わったかを見るとプレイの輪郭が出る。`);}
+        else {push('gen1',`自力入力${s.selfInputs}手に対し自動確定${s.totalAuto}マス。1入力あたり${d.autoFillPerInput.toFixed(1)}マスが自動で動いた計算になる。`);push('gen2',`連鎖命中率は${Math.round(d.hitRate*100)}%。最大${s.maxChain}連鎖だけでなく、着火頻度にもこの局の性格が出ている。`);}
+      }else if(reporter.id==='hiiragi'){
+        if(primary.family==='hintIgnite'&&s.hintFollowedInputs){push('hi1',`数字は先に教えられていた。それでも、盤面へ置かれるまではただの可能性だった。本人の指が触れたあと、${s.hintChainMax}個の数字が続いた。`);}
+        else if(s.phantomNearClearCount){push('pn1',`${r}つの空白だけが残った。ゴールはそこに見えていた。ただ、その道だけが存在しなかった。`);push('pn2',`数字は迷いなく落ちていった。最後に残った${r}つの空白だけが、ここが正しい世界ではないことを知っていた。`);}
+        else if(s.selfInputs===1){push('op1',`最初の一手が、最後の一手になった。始まりと終わりの間にあったのは、${s.clearChain}個の数字が落ちていく音だけだった。`);}else if(s.selfInputs<=3){push('or1',`始まったばかりだと思っていた。けれど${s.selfInputs}手目には、もう空白のほうが居場所を失っていた。`);}
+        else if(think>=45){push('th1',`盤面は急がなかった。プレイヤーも急がなかった。${think}秒の沈黙のあと、数字だけが先に走り出した。`);push('th2',`長い時間、何も起きていないように見えた。けれど盤面の中では、次の一手が静かに育っていたのだと思う。`);}
+        else {push('gen1',`数字は一つずつ居場所を見つけ、最後には空白のほうが消えていった。勝敗というより、帰着という言葉が似合う一局だった。`);}
+      }else{
+        if(s.maxThinkSec>=600){push('idle1',`最長${Math.round(s.maxThinkSec)}秒にわたり、確定入力のない時間が確認された。熟考、移動、休憩など複数の可能性があり、編集部では断定を避けている。`);push('idle2',`長時間にわたり盤面の進行が止まったが、その後プレイは再開され、最終的に全81マスの確定を確認した。`);}
+        else {push('gen1',`本局は大きなトラブルなく終了。数字81マスはいずれも所定の位置に収まった。`);}
+      }
+      return pickArticleVariant(`eye-${reporter.id}`,variants);
+    }
+    function chooseTitle(){const c=rankTitleCandidates(),top=c[0].score,near=c.filter(x=>x.score>=top-2.5),primaryPick=near[Math.floor(Math.random()*near.length)],primary=titleFromCandidate(primaryPick),
+      secondaryPool=c.filter(x=>x.family!=='default'&&x.family!==primary.family&&x.group!==primary.group&&x.score>=88),secondary=secondaryPool.length?titleFromCandidate(secondaryPool[0]):fallbackSecondary(primary),reporter=chooseReporter(primary,secondary),lead=makeNewsLead(primary,secondary),eye=makeReporterEye(reporter,primary,secondary);
+      return{...primary,secondary,newsFact:lead.text,newsStyle:lead.style,leadId:lead.id,comment:eye.text,eyeId:eye.id,reporter,candidateFamilies:c.slice(0,8).map(x=>({family:x.family,score:Number(x.score.toFixed(2))}))};
+    }
+    function makeBadges(title){const b=[];if(title?.rare)b.push('レア称号');if(stats.phantomChainMax>=10)b.push(`幻連鎖 ${stats.phantomChainMax}`);if(stats.phantomNearClearCount)b.push(`幻の燃え残り ${stats.phantomNearClearRemainingMin}マス`);else if(stats.nearClearCount)b.push(`燃え残り ${stats.nearClearRemainingMin}マス`);if(stats.openingChain>=15)b.push(`初手連鎖 ${stats.openingChain}`);if(stats.resets)b.push(`再挑戦 ${stats.attemptCount}回目`);if(stats.hintsUsed===0)b.push('ヒント未開封');if(stats.maxChain>=20)b.push(`大連鎖 ${stats.maxChain}`);if(stats.clearChain>=25)b.push(`クリア連鎖 ${stats.clearChain}`);if(stats.longThinkCount>=2)b.push(`長考 ${stats.longThinkCount}回`);if(stats.loads>0)b.push('世界線修正');if(stats.saves>=5)b.push('こまめにセーブ');if(stats.checks>=3)b.push('確認ヨシ');if(stats.undos===0)b.push('ノーリワインド');if(stats.maxDryStreak>=4)b.push(`停滞 ${stats.maxDryStreak}手`);return b.slice(0,6);}
+    function derived(){const avgThink=stats.thinkTimes.length?stats.totalThinkSec/stats.thinkTimes.length:0,avgThinkAnalysis=stats.thinkTimes.length?stats.analysisThinkTotalSec/stats.thinkTimes.length:0,avgChain=stats.chainLengths.length?stats.chainLengths.reduce((a,b)=>a+b,0)/stats.chainLengths.length:0,hitRate=stats.selfInputs?stats.positiveInputChains/stats.selfInputs:0,posAvg=stats.positiveInputChains?stats.positiveInputChainTotal/stats.positiveInputChains:0,longHitRate=stats.longThinkCount?stats.longThinkHitCount/stats.longThinkCount:0,clearRatio=stats.startEmpties?stats.clearChain/stats.startEmpties:0,openingRatio=stats.startEmpties?stats.openingChain/stats.startEmpties:0,manualWorkRatio=stats.startEmpties?stats.selfInputs/stats.startEmpties:0,chainConcentration=stats.totalAuto?stats.maxChain/stats.totalAuto:0,autoFillPerInput=stats.selfInputs?stats.positiveInputChainTotal/stats.selfInputs:0,avgQuiet=stats.selfInputs?stats.totalQuietBeforeInputSec/stats.selfInputs:0,distinctConfirmed=stats.confirmedDigitsSeen.slice(1).filter(Boolean).length,obs=observationShape(),tapToInputRatio=stats.selfInputs?stats.cellTaps/stats.selfInputs:0,selectionPerInput=stats.selfInputs?stats.selectionChanges/stats.selfInputs:0,assistTapRate=stats.cellTaps?stats.confirmedCellTaps/stats.cellTaps:0;return{avgThink,avgThinkAnalysis,avgChain,hitRate,posAvg,longHitRate,clearRatio,openingRatio,manualWorkRatio,chainConcentration,autoFillPerInput,avgQuiet,distinctConfirmed,tapToInputRatio,selectionPerInput,assistTapRate,...obs};}
+    function makeRecord(title){const d=derived();return{
+      schema:SCHEMA,compatibleWith:COMPAT_SCHEMAS.slice(),appVersion:'5.8',finishedAt:new Date().toISOString(),difficulty:stats.difficulty,elapsedSec:elapsed,initialClues:stats.initialClues,preflightAuto:stats.preflightAuto,startEmpties:stats.startEmpties,titleFamily:title.family,title:title.name,secondaryTitleFamily:title.secondary?.family||null,secondaryTitle:title.secondary?.name||null,newspaper:{headline:title.name,subheadline:title.secondary?.name||null,lead:title.newsFact||'',fact:title.newsFact||'',leadStyle:title.newsStyle||null,reporterId:title.reporter?.id||null,reporterName:title.reporter?.name||null,reporterRole:title.reporter?.role||null,reporterDesk:title.reporter?.desk||null,eye:title.comment||'',comment:title.comment||'',leadTemplateId:title.leadId||null,eyeTemplateId:title.eyeId||null},
+      generation:{requestedDifficulty:stats.difficulty,baseClues:stats.generatorBaseClues,actualClues:stats.generatorActualClues,extraCluesRemovedForPlayableStart:stats.generatorExtraRemoved,regenerations:stats.generatorRegenerations,targetStartEmptiesRange:stats.generatorStartRange.slice(),selectedStartEmpties:stats.generatorSelectedStartEmpties,openingPotentialMin:stats.generatorOpeningPotentialMin,openingPotentialMax:stats.generatorOpeningPotentialMax,openingJackpot:!!stats.generatorOpeningJackpot},
+      settings:{guardEnabledAtFinish:guardEnabled,candidateVisibleAtFinish:candidateVisible,soundVolumeAtFinish:soundVolume,darkMode},
+      summary:{
+        // v3 fields retained unchanged in name/meaning where possible.
+        selfInputs:stats.selfInputs,memoInputs:stats.memoInputs,hintsUsed:stats.hintsUsed,undos:stats.undos,saves:stats.saves,loads:stats.loads,checks:stats.checks,wrongChecks:stats.wrongChecks,wrongCellsSeen:stats.wrongCellsSeen,guardToggles:stats.guardToggles,candidateToggles:stats.candidateToggles,candidateViewEpisodes:stats.candidateViewEpisodes,candidateViewTotalSec:Number(stats.candidateViewTotalSec.toFixed(1)),candidateViewMaxSec:Number(stats.candidateViewMaxSec.toFixed(1)),candidateQuickPeeks:stats.candidateQuickPeeks,guardStops:stats.guardStops,guardOffMoves:stats.guardOffMoves,maxChain:stats.maxChain,totalAuto:stats.totalAuto,chainEvents:stats.chainEvents,avgChain:Number(d.avgChain.toFixed(2)),hintChainMax:stats.hintChainMax,hintFollowedInputs:stats.hintFollowedInputs,hintFollowLatencyAvgSec:stats.hintFollowedInputs?Number((stats.hintFollowLatencyTotalSec/stats.hintFollowedInputs).toFixed(1)):0,hintFollowLatencyMaxSec:Number(stats.hintFollowLatencyMaxSec.toFixed(1)),postLoadFirstChainMax:stats.postLoadFirstChainMax,clearChain:stats.clearChain,candidateRemovals:stats.candidateRemovals,zeroChainMoves:stats.zeroChainMoves,maxDryStreak:stats.maxDryStreak,longThinkThresholdSec:LONG_THINK,longThinkCount:stats.longThinkCount,totalThinkSec:Number(stats.totalThinkSec.toFixed(1)),avgThinkSec:Number(d.avgThink.toFixed(1)),maxThinkSec:Number(stats.maxThinkSec.toFixed(1)),longThinkChainMax:stats.longThinkChainMax,quickInputThresholdSec:QUICK_THINK,quickInputs:stats.quickInputs,
+        // v4 additions make the old ambiguous averages and wrong-worldline behavior directly analyzable.
+        positiveInputChains:stats.positiveInputChains,inputChainHitRate:Number(d.hitRate.toFixed(3)),avgPositiveInputChain:Number(d.posAvg.toFixed(2)),clearChainRatio:Number(d.clearRatio.toFixed(3)),longThinkHitCount:stats.longThinkHitCount,longThinkZeroCount:stats.longThinkZeroCount,longThinkHitRate:Number(d.longHitRate.toFixed(3)),longThinkChainAvg:stats.longThinkCount?Number((stats.longThinkChainTotal/stats.longThinkCount).toFixed(2)):0,wrongInputs:stats.wrongInputs,wrongInputChainMax:stats.wrongInputChainMax,wrongWorldlineChainMax:stats.wrongWorldlineChainMax,phantomChainMax:stats.phantomChainMax,wrongPathRecoveries:stats.wrongPathRecoveries,wrongPathUndoRecoveries:stats.wrongPathUndoRecoveries,wrongPathLoadRecoveries:stats.wrongPathLoadRecoveries,wrongPathHintRecoveries:stats.wrongPathHintRecoveries,wrongPathOverwriteRecoveries:stats.wrongPathOverwriteRecoveries,wrongPathResetRecoveries:stats.wrongPathResetRecoveries,resets:stats.resets,attemptCount:stats.attemptCount,nearClearCount:stats.nearClearCount,nearClearChainMax:stats.nearClearChainMax,nearClearRemainingMin:stats.nearClearCount?stats.nearClearRemainingMin:null,sessionElapsedSec:Number(((performance.now()-sessionStartedAt)/1000).toFixed(1)),sessionRestores:stats.sessionRestores||0,
+        // v5.2+: event-shape diagnostics. Existing fields above remain unchanged for compatibility.
+        openingChain:stats.openingChain,openingChainRatio:Number(d.openingRatio.toFixed(3)),openingThinkSec:Number(stats.openingThinkSec.toFixed(1)),openingFinished:stats.openingFinished,openingCorrect:stats.openingCorrect,openingMemoInputs:stats.openingMemoInputs,manualWorkRatio:Number(d.manualWorkRatio.toFixed(3)),chainConcentration:Number(d.chainConcentration.toFixed(3)),autoFillPerInput:Number(d.autoFillPerInput.toFixed(2)),wrongPathEntries:stats.wrongPathEntries,wrongPathPeaks:stats.wrongPathPeaks.slice(),phantomNearClearCount:stats.phantomNearClearCount,phantomNearClearChainMax:stats.phantomNearClearChainMax,phantomNearClearRemainingMin:stats.phantomNearClearCount?stats.phantomNearClearRemainingMin:null
+      },
+      observation:{analysisThinkCapSec:THINK_ANALYSIS_CAP,veryLongPauseThresholdSec:VERY_LONG_PAUSE,totalThinkSecCapped:Number(stats.analysisThinkTotalSec.toFixed(1)),avgThinkSecCapped:Number(d.avgThinkAnalysis.toFixed(1)),maxThinkSecCapped:Number(stats.maxAnalysisThinkSec.toFixed(1)),veryLongPauseCount:stats.veryLongPauseCount,cellTaps:stats.cellTaps,selectionChanges:stats.selectionChanges,confirmedCellTaps:stats.confirmedCellTaps,emptyCellTaps:stats.emptyCellTaps,sameNumberAssistTaps:stats.sameNumberAssistTaps,confirmedDigitSwitches:stats.confirmedDigitSwitches,distinctConfirmedDigitsInspected:d.distinctConfirmed,confirmedTapCountsByDigit:stats.confirmedTapCountsByDigit.slice(1),avgQuietBeforeInputSec:Number(d.avgQuiet.toFixed(1)),maxQuietBeforeInputSec:Number(stats.maxQuietBeforeInputSec.toFixed(1)),maxCellTapsBeforeInput:stats.maxCellTapsBeforeInput,maxConfirmedTapsBeforeInput:stats.maxConfirmedTapsBeforeInput,maxDistinctConfirmedDigitsBeforeInput:stats.maxDistinctConfirmedDigitsBeforeInput,maxSelectionChangesBeforeInput:stats.maxSelectionChangesBeforeInput,tapToInputRatio:Number(d.tapToInputRatio.toFixed(2)),selectionChangesPerInput:Number(d.selectionPerInput.toFixed(2)),assistTapRate:Number(d.assistTapRate.toFixed(3)),activeThinkMoves:d.activeThinkMoves,quietThinkMoves:d.quietThinkMoves,assistThinkMoves:d.assistThinkMoves,scanBurstMoves:d.scanBurstMoves,maxMemoActionsBeforeInput:d.maxMemoActionsBeforeInput,maxActiveThinkSec:Number(d.maxActiveThinkSec.toFixed(1)),maxQuietThinkSec:Number(d.maxQuietThinkSec.toFixed(1))},
+      titleEngine:{version:'5.8-newsroom',candidateFamilies:title.candidateFamilies||[]},
+      thinkTimesSec:stats.thinkTimes.slice(),chainLengths:stats.chainLengths.slice(),chainTriggers:stats.chainTriggers.slice(),moves:stats.moves.map(x=>({...x})),attempts:stats.attempts.map(x=>({...x})),events:stats.events.slice()
+    };}
+    function persistRecord(record){const logs=savedLogs();logs.push(record);saveOrganizedLogs(logs);const h=safeRead(TITLE_KEY,[]);h.push({family:record.titleFamily,name:record.title,secondaryFamily:record.secondaryTitleFamily||null,secondaryName:record.secondaryTitle||null});while(h.length>40)h.shift();safeWrite(TITLE_KEY,h);const ah=articleHistory();ah.push({reporterId:record.newspaper?.reporterId||null,leadId:record.newspaper?.leadTemplateId||null,eyeId:record.newspaper?.eyeTemplateId||null});while(ah.length>30)ah.shift();safeWrite(ARTICLE_KEY,ah);updateLogCount();}
+    async function copyText(text,label){let ok=false;try{await navigator.clipboard.writeText(text);ok=true;}catch(e){try{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove();}catch(_){}}setStatus(ok?`${label}をコピーしました。チャッピーにそのまま貼れます。`:'コピーできませんでした。このブラウザではクリップボードが使えないようです。');}
+    function exportOne(){if(!lastCompletedRecord)return;copyText(JSON.stringify(lastCompletedRecord,null,2),'今回のプレイ記録');}
+    function exportAll(){const logs=organizeLogArray(savedLogs()),cut=Math.max(0,logs.length-EXPORT_DETAILED_LOGS),plays=logs.map((r,i)=>i<cut?compactRecord(r):({...r,logDetail:r.logDetail||'full'})),pack={schema:'np-playlog-bundle-v1',playSchema:SCHEMA,compatibleWith:COMPAT_SCHEMAS.slice(),exportedAt:new Date().toISOString(),count:plays.length,summaryOnlyCount:plays.filter(r=>r.logDetail==='summary').length,detailedCount:plays.filter(r=>r.logDetail!=='summary').length,note:`古い局は要約、直近${EXPORT_DETAILED_LOGS}局は詳細ログです。`,plays};copyText(JSON.stringify(pack),'累計プレイログ（整理版）');}
+    function showResult(title){const d=derived();resultTimeEl.textContent=formatTime(elapsed);titleEl.textContent=title.name;titleDescEl.textContent=title.desc;secondaryTitleEl.textContent=title.secondary?.name||'盤面観測継続中';secondaryDescEl.textContent=title.secondary?.desc||'';newsFactEl.textContent=title.newsFact||'';editorCommentEl.textContent=title.comment||'';reporterBylineEl.textContent=title.reporter?`―― ${title.reporter.role}・${title.reporter.name}`:'';const items=[['最大連鎖',`${stats.maxChain}マス`],['クリア連鎖',`${stats.clearChain}マス`],['自力入力',`${stats.selfInputs}手`],['連鎖命中',`${Math.round(d.hitRate*100)}%`],['最長長考',`${Math.round(stats.maxThinkSec)}秒`],['長考',`${stats.longThinkCount}回`],['確定数字確認',`${stats.confirmedCellTaps}回`],['盤面巡回',`${stats.selectionChanges}回`],['挑戦回数',`${stats.attemptCount}回`],['燃え残り',stats.nearClearCount?`${stats.nearClearRemainingMin}マス`:'なし'],['ヒント',`${stats.hintsUsed}回`],['幻の連鎖',`${stats.phantomChainMax}マス`]];statsEl.innerHTML=items.map(x=>`<div><span class="stat-label">${x[0]}</span><span class="stat-value">${x[1]}</span></div>`).join('');badgesEl.innerHTML=makeBadges(title).map(x=>`<span class="badge">${x}</span>`).join('');resultEl.classList.remove('hidden');}
+    function finish(withSound=false){if(completed)return;if(candidateVisible)closeCandidateView('finish');completed=true;if(timerId)clearInterval(timerId);setBusy(false);pendingAutoResume=null;finalizeAttempt('clear');const title=chooseTitle();lastCompletedRecord=makeRecord(title);persistRecord(lastCompletedRecord);clearActiveGame();showResult(title);setStatus(`完成！ ${formatTime(elapsed)}。大見出し「${title.name}」／小見出し「${title.secondary?.name||''}」`);if(withSound)clearSound();}
+
+    function applyPrepared(prepared){hintSuggestion=null;const {made,pre,base,regenerations,startRange,startEmpties,easyOpeningPotentialMin=null,easyOpeningPotentialMax=null,easyOpeningJackpot=false}=prepared;puzzle=made.puzzle.slice();solution=made.solution.slice();values=pre.values.slice();given=puzzle.map(v=>v!==0);locked=given.map((g,i)=>g||pre.autoMask[i]);autoFilled=pre.autoMask.slice();manualMemo=Array(81).fill(false);selected=-1;completed=false;memoMode=false;displaySets=Array.from({length:81},(_,i)=>values[i]===0?new Set(candidates(values,i)):new Set());stats.initialClues=given.filter(Boolean).length;stats.preflightAuto=pre.prefilled;stats.startEmpties=values.filter(v=>v===0).length;stats.difficulty=levelEl.value;stats.generatorBaseClues=base;stats.generatorActualClues=stats.initialClues;stats.generatorExtraRemoved=Math.max(0,base-stats.initialClues);stats.generatorRegenerations=regenerations;stats.generatorStartRange=(startRange||START_EMPTY_RANGE[levelEl.value]||[0,0]).slice();stats.generatorSelectedStartEmpties=startEmpties??stats.startEmpties;stats.generatorOpeningPotentialMin=easyOpeningPotentialMin;stats.generatorOpeningPotentialMax=easyOpeningPotentialMax;stats.generatorOpeningJackpot=!!easyOpeningJackpot;currentGenerationMeta={base,actual:stats.initialClues,extra:stats.generatorExtraRemoved,regenerations,startRange:stats.generatorStartRange.slice(),startEmpties:stats.generatorSelectedStartEmpties,openingPotentialMin:easyOpeningPotentialMin,openingPotentialMax:easyOpeningPotentialMax,openingJackpot:!!easyOpeningJackpot};}
+    function newGame(){
+      clearActiveGame();runId++;if(timerId)clearInterval(timerId);busy=false;newBtn.disabled=true;gameEl.hidden=true;resultEl.classList.add('hidden');saveState=null;lastCompletedRecord=null;undoStack=[];resetStats();clearPlayed=false;awaitingPostLoad=false;pendingAutoResume=null;candidateVisibleSince=null;timerEl.textContent='00:00';cluesEl.textContent='準備中';savePrefs();
+      setStatus(levelEl.value==='easy'?'問題を作成しています。一文字候補を残しつつ、開幕の連鎖具合も選んでいます…':'問題を作成し、一意解と開始前チェックを確認しています…');
+      setTimeout(()=>{
+        const myRun=runId,prepared=generatePlayable(levelEl.value);if(myRun!==runId)return;applyPrepared(prepared);noteBtn.setAttribute('aria-pressed','false');noteBtn.textContent='メモ入力：OFF';gameStartedAt=performance.now();sessionStartedAt=gameStartedAt;
+        event('start',{difficulty:stats.difficulty,clues:stats.initialClues,preflight:stats.preflightAuto,generatorBaseClues:stats.generatorBaseClues,generatorExtraRemoved:stats.generatorExtraRemoved,targetStartEmptiesRange:stats.generatorStartRange.slice(),selectedStartEmpties:stats.generatorSelectedStartEmpties,...(stats.difficulty==='easy'?{openingPotentialMin:stats.generatorOpeningPotentialMin,openingPotentialMax:stats.generatorOpeningPotentialMax,openingJackpot:stats.generatorOpeningJackpot}:{})});
+        beginAttempt();render();startState=snapshot();startState.elapsed=0;cluesEl.textContent=stats.preflightAuto?`初期 ${stats.initialClues}＋自動 ${stats.preflightAuto}`:`初期 ${stats.initialClues}`;gameEl.hidden=false;newBtn.disabled=false;restartTimer(0);startSound();updateControls();markReady();if(candidateVisible)candidateVisibleSince=performance.now();
+        setStatus(levelEl.value==='easy'?'ゲームスタート！ 「かんたん」は見える一文字候補を残して始まります。':'ゲームスタート！ 開始前チェック完了です。');autosaveActiveGame(true);
+      },20);
+    }
+
+    keyBtns.forEach(b=>b.addEventListener('click',()=>inputNumber(Number(b.dataset.num))));guardBtn.addEventListener('click',toggleGuard);candidateBtn.addEventListener('click',toggleCandidates);volumeBtn.addEventListener('click',toggleVolume);darkBtn.addEventListener('click',toggleDark);noteBtn.addEventListener('click',toggleMemo);undoBtn.addEventListener('click',doUndo);checkBtn.addEventListener('click',check);hintBtn.addEventListener('click',hint);resetBtn.addEventListener('click',doReset);saveBtn.addEventListener('click',doSave);loadBtn.addEventListener('click',doLoad);copyOneBtn.addEventListener('click',exportOne);copyAllBtn.addEventListener('click',exportAll);newBtn.addEventListener('click',()=>{ensureAudio();newGame();});levelEl.addEventListener('change',()=>{ensureAudio();savePrefs();newGame();});root.addEventListener('pointerdown',ensureAudio,{once:true});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')autosaveActiveGame();});window.addEventListener('pagehide',()=>autosaveActiveGame());loadPrefs();organizeStoredLogs();updateControls();updateLogCount();if(!restoreActiveGame())newGame();
+  })();
+  </script>
+</div>
+
+</body>
+</html>
